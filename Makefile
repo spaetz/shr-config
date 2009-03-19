@@ -11,7 +11,7 @@ compile: abstract.vala power.vala gps.vala main.vala
 	            $?
 
 link: abstract.o power.o gps.o main.o
-	gcc `pkg-config elementary dbus-glib-1 --libs` -o settings $?
+	$(CC) `pkg-config elementary dbus-glib-1 --libs` -o settings $?
 
 clean: 
 	rm *.o *.c *.h settings
