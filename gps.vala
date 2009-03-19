@@ -37,7 +37,7 @@ public class T.GPS : T.Abstract
         quitbt.size_hint_align_set( -1.0, -1.0 );
         quitbt.label_set("Quit");
         quitbt.show();
-        //quitbt.smart_callback_add( "clicked", close );
+        quitbt.smart_callback_add( "clicked", close );
         this.win.pack_end( quitbt );
 
         stdout.printf("background");
