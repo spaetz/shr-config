@@ -72,6 +72,7 @@ public class T.Power : T.Abstract
     {
        Elm.Slider* p_sli = obj;
        int newval = (int) p_sli->value_get();
+       dbus_disp.SetBrightness ( newval );
        debug("Set new brightness value %d", newval);
     }
 
