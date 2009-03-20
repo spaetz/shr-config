@@ -1,7 +1,7 @@
 all: compile link
 
 compile: abstract.vala power.vala gps.vala main.vala
-	valac -c            \
+	valac -c -X -Os           \
 	            --pkg dbus-glib-1 \
 	            --pkg eina \
 	            --pkg evas \

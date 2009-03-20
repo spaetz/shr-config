@@ -17,10 +17,15 @@
  *
  */
 
+/*
+ * T.Power is a vala-settings plugin that display blanking timeout
+ * and other power related settings
+*/
 public class T.Power : T.Abstract
 {
     private DBus.Connection dbus;
     private dynamic DBus.Object dbus_disp;
+    private dynamic DBus.Object dbus_res;
 
     // brightness slider elements
     private Elm.Box bright_box;
@@ -54,25 +59,60 @@ public class T.Power : T.Abstract
        this.dbus_disp = dbus.get_object ("org.freesmartphone.odeviced",
                                  "/org/freesmartphone/Device/Display/0",
                                  "org.freesmartphone.Device.Display");
-       this.dbus_disp = dbus.get_object ("org.freesmartphone.odeviced",
-                                 "/org/freesmartphone/Device/Display/0",
-                                 "org.freesmartphone.Device.Display");
-
        //SetBrightness(i), GetBrightness, GetBacklightPower, 
        //SetBacklightPower(b), GetName
+       this.dbus_res = dbus.get_object ("org.freesmartphone.ousaged",
+                                 "/org/freesmartphone/Usage",
+                                 "org.freesmartphone.Usage");
+       // [Get,Set]ResourcePolicy(s), GetResourceState(s), GetResourceUsers(s),
+       // ListResources, Reboot, Suspend, RequestResource, ReleaseResource, 
+       // Sig: ResourceAvailable( s:resourcename, b:state ), 
+       // Sig: ResourceChanged( s:resourcename, b:state, a{sv}:attributes )
 
-        // dbus signals
-        //this.bluez.RemoteDeviceFound += remote_device_found;
-        //private void remote_device_found (dynamic DBus.Object bluez,
-        //                                  string address_, uint class_, int rssi_) {}
+       // connect signal if the state of any resource changes
+       this.dbus_res.ResourceChanged += cb_resource_changed;
     }
 
-    public void cb_change_bright_value(  Evas.Object obj, void* event_info)
+    /*
+     * Callback function that is called when a resource state has changed.
+     */
+    private void cb_resource_changed (dynamic DBus.Object dbus,
+                                      string res, bool state, 
+                                      string[] str_arr) {
+       debug("Resource %s changed!\n", res);
+    }
+
+
+    /*
+     * Callback function called by susPol_tog if we switch it
+     */
+    private void cb_dimsuspPol_tog_changed (  Evas.Object obj, void* event_info ){
+       Elm.Toggle* p_tog = obj;
+       bool state = p_tog->state_get ( );
+       string res = p_tog->name_get ( );
+       debug("State is now %d %s\n", (int) state, res );
+       if (state) {
+           // toggle moved to on, so set ResourcePolicy to Auto
+           dbus_res.SetResourcePoliecy( res, "auto" );
+           this.suspPol_tog.show();
+       } else {
+           // toggle moved to off, enable Resource permanently
+           dbus_res.SetResourcePolicy( res, "enabled" );
+           // if Display dimming is disabled,
+           // hide the nonsensical suspend option.
+           if (res == "Display") this.suspPol_tog.hide();
+       }
+    }
+
+
+    /*
+     * Callback function called by the brightness slider when we change it
+     */
+    private void cb_change_bright_value(  Evas.Object obj, void* event_info )
     {
        Elm.Slider* p_sli = obj;
        int newval = (int) p_sli->value_get();
        bright_v_label.label_set( newval.to_string() );
-       //debug("change label to %d", newval);
     }
 
     public void cb_change_bright_value_delayed(  Evas.Object obj, void* event_info)
@@ -132,8 +172,12 @@ public class T.Power : T.Abstract
         dimPol_table.pack ( dimPol_lab, 0, 0, 1, 1 );
 
         dimPol_tog = new Elm.Toggle( box );
+        dimPol_tog.name_set( "Display" );
         dimPol_tog.size_hint_weight_set( 1.0, 1.0 );
+        string dimPol = dbus_res.GetResourcePolicy( "Display" );
+        dimPol_tog.state_set( dimPol != "enabled" );
         dimPol_tog.show();
+        dimPol_tog.smart_callback_add( "changed", cb_dimsuspPol_tog_changed);
         dimPol_table.pack ( dimPol_tog, 1, 0, 1, 1 );
 
 
@@ -143,7 +187,13 @@ public class T.Power : T.Abstract
         dimPol_table.pack ( suspPol_lab, 0, 1, 1, 1 );
 
         suspPol_tog = new Elm.Toggle( box );
-        suspPol_tog.show();
+        suspPol_tog.name_set( "CPU" );
+        string suspPol = dbus_res.GetResourcePolicy( "CPU" );
+        suspPol_tog.state_set( suspPol != "enabled" );
+        // only show the toggle if it makes sense
+        if ( dimPol_tog.state_get() )
+            suspPol_tog.show();
+        suspPol_tog.smart_callback_add( "changed", cb_dimsuspPol_tog_changed);
         suspPol_tog.size_hint_weight_set( 1.0, 1.0 );
         dimPol_table.pack ( suspPol_tog, 1, 1, 1, 1 );
         // End of Dim/Suspend Policy

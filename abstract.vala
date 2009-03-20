@@ -25,7 +25,6 @@ public abstract class T.Abstract
     protected Elm.Box box;
     private Elm.Button quitbt;
     private Elm.Bg bg;
-    private Elm.Label l;
 
     //public DBus.Connection conn { set; get; }
     //private DBus.Connection conn;
@@ -56,13 +55,6 @@ public abstract class T.Abstract
         box.size_hint_weight_set( 1.0, 1.0 );
         box.show();
         win.resize_object_add(box);
-
-        l = new Elm.Label( this.win );
-        l.label_set(" Hello world ");
-        l.size_hint_weight_set( 1.0, 1.0 );
-        l.size_hint_align_set( -1.0, -1.0 );
-        l.show();
-        box.pack_start( l );
 
         quitbt = new Elm.Button( this.win );
         quitbt.label_set("Quit");

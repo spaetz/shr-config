@@ -46,7 +46,6 @@ public class Category {
 
 public int main( string[] args )
 {
-    debug( "main()" );
     Elm.init( args );
 
     Win win = new Win( null, "settings", WinType.BASIC );
