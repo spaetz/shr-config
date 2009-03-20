@@ -22,12 +22,22 @@ public class T.Power : T.Abstract
     private DBus.Connection dbus;
     private dynamic DBus.Object dbus_disp;
 
-    //brightness slider elements
+    // brightness slider elements
     private Elm.Box bright_box;
     private Elm.Label bright_label;
     private Elm.Label bright_v_label;
     private Elm.Slider bright;
 
+    // timeout elements
+    private string[] timeouts = {"idle","idle_dim","suspend"};
+    private Elm.Table tout_table;
+
+    // dim/suspend Policy elements
+    private Elm.Table dimPol_table;
+    private Elm.Label dimPol_lab;
+    private Elm.Toggle dimPol_tog;
+    private Elm.Label suspPol_lab;
+    private Elm.Toggle suspPol_tog;
 
     public Power()
     {
@@ -44,20 +54,17 @@ public class T.Power : T.Abstract
        this.dbus_disp = dbus.get_object ("org.freesmartphone.odeviced",
                                  "/org/freesmartphone/Device/Display/0",
                                  "org.freesmartphone.Device.Display");
+       this.dbus_disp = dbus.get_object ("org.freesmartphone.odeviced",
+                                 "/org/freesmartphone/Device/Display/0",
+                                 "org.freesmartphone.Device.Display");
 
-       //SetBrightness(i), GetBrightness, GetBacklightPower, SetBacklightPower(b), GetName
+       //SetBrightness(i), GetBrightness, GetBacklightPower, 
+       //SetBacklightPower(b), GetName
 
         // dbus signals
         //this.bluez.RemoteDeviceFound += remote_device_found;
-        // async dbus call
-        //this.bluez.DiscoverDevices ();
-        // 
-    //private void remote_device_found (dynamic DBus.Object bluez,
-    //                                  string address_, uint class_, int rssi_) {
-    //    message ("Signal: RemoteDeviceFound(%s, %u, %d)", address_, class_, rssi_);
-    //}
-
-
+        //private void remote_device_found (dynamic DBus.Object bluez,
+        //                                  string address_, uint class_, int rssi_) {}
     }
 
     public void cb_change_bright_value(  Evas.Object obj, void* event_info)
@@ -72,6 +79,7 @@ public class T.Power : T.Abstract
     {
        Elm.Slider* p_sli = obj;
        int newval = (int) p_sli->value_get();
+       //TODO: put dbus call in a separate method that throws DBus Errors
        dbus_disp.SetBrightness ( newval );
        debug("Set new brightness value %d", newval);
     }
@@ -109,9 +117,55 @@ public class T.Power : T.Abstract
         bright_box.pack_end(bright_label);
         bright_box.pack_end(bright);
         bright_box.pack_end(bright_v_label);
+        // End of Brightness slider
 
+        // Dim/Suspend Policy
+        dimPol_table = new Elm.Table( box );
+        dimPol_table.size_hint_align_set( -1.0, -1.0 );
+        dimPol_table.size_hint_weight_set( 1.0, 1.0 );
+        dimPol_table.show();
+        box.pack_start( dimPol_table );
+
+        dimPol_lab = new Elm.Label( box );
+        dimPol_lab.show();
+        dimPol_lab.label_set( "Screen dimming");
+        dimPol_table.pack ( dimPol_lab, 0, 0, 1, 1 );
+
+        dimPol_tog = new Elm.Toggle( box );
+        dimPol_tog.size_hint_weight_set( 1.0, 1.0 );
+        dimPol_tog.show();
+        dimPol_table.pack ( dimPol_tog, 1, 0, 1, 1 );
+
+
+        suspPol_lab = new Elm.Label( box );
+        suspPol_lab.show();
+        suspPol_lab.label_set( "Suspend");
+        dimPol_table.pack ( suspPol_lab, 0, 1, 1, 1 );
+
+        suspPol_tog = new Elm.Toggle( box );
+        suspPol_tog.show();
+        suspPol_tog.size_hint_weight_set( 1.0, 1.0 );
+        dimPol_table.pack ( suspPol_tog, 1, 1, 1, 1 );
+        // End of Dim/Suspend Policy
+
+
+        // The timout table
+        tout_table = new Elm.Table( box );
+        tout_table.size_hint_align_set( -1.0, -1.0 );
+        tout_table.size_hint_weight_set( 1.0, 1.0 );
+        tout_table.show();
+        box.pack_start(tout_table);
+
+        //for (int i = 0; i < categories.length (); i++) {
+        //int i = 0;
+        foreach (string str in timeouts) {
+            debug(str);
+        }
+        // End of timeout table
+
+ 
+        // Finally show the module window
         this.win.show();
-        debug("added label");
     }
 
     public override string name()

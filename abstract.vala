@@ -63,7 +63,6 @@ public abstract class T.Abstract
         l.size_hint_align_set( -1.0, -1.0 );
         l.show();
         box.pack_start( l );
-        stdout.printf("Added label");
 
         quitbt = new Elm.Button( this.win );
         quitbt.label_set("Quit");
