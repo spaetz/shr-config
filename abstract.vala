@@ -16,49 +16,73 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  *
  */
+using Elm;
 
 public abstract class T.Abstract
 {
-    //protected Elm.Box win;
-    public Elm.Box win;
+    //protected Elm.Box win; and it's main elm elements
+    protected Elm.Win win;
+    protected Elm.Box box;
+    private Elm.Button quitbt;
+    private Elm.Bg bg;
+    private Elm.Label l;
+
     //public DBus.Connection conn { set; get; }
     //private DBus.Connection conn;
     //private dynamic DBus.Object bluez;
     //public MainLoop loop { set; get; }
     public Elm.Pager* p_parent;
     
-    public void init(Elm.Pager par)
+    public void init(Elm.Box par)
     {
         debug( "init module " );
         this.p_parent = par;
-        this.win = new Elm.Box( par );
-        this.win.size_hint_align_set( -1.0, -1.0 );
-        this.win.size_hint_weight_set( 1.0, 1.0 );
-        //this.win.homogenous_set( true );
-        //win.smart_callback_add( "delete-request", close );
+        win = new Win( null, "settings", WinType.BASIC );
+        win.title_set( name() );
+        win.autodel_set( true );
+        win.resize( 320, 320 );
+        win.smart_callback_add( "delete-request", close );
+        //win.show();
+
+        //this.win.smart_callback_add( "delete-request", close );
         //win.resize( 320, 320 );
 
-        Elm.Bg bg = new Elm.Bg( this.win );
+        bg = new Elm.Bg( this.win );
         bg.size_hint_weight_set( 1.0, 1.0 );
         bg.show();
-        this.win.pack_end( bg );
+        this.win.resize_object_add( bg );
 
-        Elm.Label l = new Elm.Label( this.win );
+        box = new Elm.Box(win);
+        box.size_hint_weight_set( 1.0, 1.0 );
+        box.show();
+        win.resize_object_add(box);
+
+        l = new Elm.Label( this.win );
         l.label_set(" Hello world ");
+        l.size_hint_weight_set( 1.0, 1.0 );
+        l.size_hint_align_set( -1.0, -1.0 );
         l.show();
-        this.win.pack_start( l );
+        box.pack_start( l );
         stdout.printf("Added label");
-        Elm.Button quitbt = new Elm.Button( this.win );
+
+        quitbt = new Elm.Button( this.win );
         quitbt.label_set("Quit");
-        quitbt.size_hint_weight_set( 1.0, 1.0 );
+        quitbt.size_hint_weight_set( 1.0, 0.0 );
+        quitbt.size_hint_align_set( -1.0, 1.0 );
         quitbt.show();
         //quitbt.smart_callback_add( "clicked", close );
-        this.win.pack_end( quitbt );
-        this.win.show();
+        quitbt.smart_callback_add( "clicked", this.cb_back_to_main );
+        box.pack_end( quitbt );
 
     }
 
-    public abstract void run( Evas.Object obj, void* event_info );
+    private void cb_back_to_main() {
+        // TODO disable GUI updates and stuff
+        debug("closing module window");
+        this.win.hide();
+    }
+
+    public abstract void run( Evas.Object obj, void* event_info ) throws GLib.Error;
 
     public void close()
     {

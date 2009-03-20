@@ -21,27 +21,19 @@ public class T.GPS : T.Abstract
 {
     Elm.Bg bg;
 
-    public override void run( Evas.Object obj, void* event_info )
+    public override void run( Evas.Object obj, void* event_info ) throws GLib.Error
     {
-        bg = new Elm.Bg( this.win );
+        bg = new Elm.Bg( this.box );
         bg.file_set( "/usr/share/vala-settings/icons/icon_gps.png" );
         bg.size_hint_weight_set( 1.0, 1.0 );
         bg.size_hint_min_set( 160, 160 );
         bg.size_hint_max_set( 640, 640 );
         bg.show();
 
-        this.win.pack_end( bg );
-
-        Elm.Button quitbt = new Elm.Button( this.win );
-        quitbt.size_hint_weight_set( 1.0, 0.0 );
-        quitbt.size_hint_align_set( -1.0, -1.0 );
-        quitbt.label_set("Quit");
-        quitbt.show();
-        quitbt.smart_callback_add( "clicked", close );
-        this.win.pack_end( quitbt );
+        this.box.pack_end( bg );
 
         stdout.printf("background");
-        p_parent->content_promote ( this.win );
+        this.win.show();
     }
 
     public override string name()

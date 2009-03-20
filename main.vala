@@ -25,10 +25,10 @@ Button[] buttons;
 
 public void add_module(Win win, Table table, Category c, int ind )
 {
-    stdout.printf ("%s\n", c.name);
+    //stdout.printf ("%s\n", c.name);
     int row = ind / 2;
     int col = ind % 2;
-    stdout.printf ("%d %d\n", row, col);
+    //stdout.printf ("%d %d\n", row, col);
     
     buttons[ind] = new Button( win );
     buttons[ind].label_set( c.name );
@@ -61,15 +61,11 @@ public int main( string[] args )
     bg.show();
     win.resize_object_add( bg );
 
-    Pager mainpager = new Pager (win);
-    mainpager.size_hint_weight_set( 1.0, 1.0 );
-    win.resize_object_add( mainpager );
-
     Box box = new Box( win );
     box.size_hint_align_set( -1.0, -1.0 );
     box.size_hint_weight_set( 1.0, 1.0 );
     box.show();
-    mainpager.content_push( box );
+    win.resize_object_add( box );
 
     table = new Table( box );
     table.size_hint_align_set( -1.0, -1.0 );
@@ -89,8 +85,7 @@ public int main( string[] args )
     // iterate over all categories and create buttons
     for (int i = 0; i < categories.length (); i++) {
         Category cat = categories.nth_data(i);
-        cat.mod.init( mainpager );
-        mainpager.content_push( cat.mod.win );
+        cat.mod.init( box );
         add_module (win, table, cat, i);
     }
 
@@ -103,8 +98,6 @@ public int main( string[] args )
     quitbt.show();
     box.pack_end( quitbt );
 
-    mainpager.content_promote( box );
-    mainpager.show();
     stdout.printf ("before runloop\n");
     run();
     shutdown();
