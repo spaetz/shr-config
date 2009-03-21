@@ -22,6 +22,7 @@ using Elm;
 
 Table table;
 Button[] buttons;
+Icon[] icons;
 
 public void add_module(Win win, Table table, Category c, int ind )
 {
@@ -29,18 +30,25 @@ public void add_module(Win win, Table table, Category c, int ind )
     int row = ind / 2;
     int col = ind % 2;
     //stdout.printf ("%d %d\n", row, col);
-    
+
+    icons[ind] = new Icon( win );
+    icons[ind].file_set( c.mod.icon() );
+    icons[ind].smooth_set( false );
+    //icons[ind].scale_set( false, false );
+    icons[ind].no_scale_set( true );
+
     buttons[ind] = new Button( win );
-    buttons[ind].label_set( c.name );
+    buttons[ind].label_set( c.mod.name() );
+    buttons[ind].icon_set( icons[ind] );
     buttons[ind].smart_callback_add( "clicked", c.mod.run );
     buttons[ind].show();
     buttons[ind].size_hint_align_set( 0.5, 0.5 );
     buttons[ind].size_hint_weight_set( 1.0, 1.0 );
-    table.pack(buttons[ind], row, col, 1, 1 );
+    table.pack(buttons[ind], col, row, 1, 1 );
 }
 
 public class Category {
-    public T.Abstract mod;
+    public Setting.Abstract mod;
     public string name;
 }
 
@@ -74,12 +82,17 @@ public int main( string[] args )
     box.pack_start( table );
 
     GLib.SList<Category> categories = new GLib.SList<Category> ();
-    categories.append (new Category(){mod= new T.Power(), name="Power"});
-    categories.append (new Category(){mod= new T.Power(), name="Display"});
-    categories.append (new Category(){mod= new T.GPS(), name="GPS"});
+    categories.append (new Category(){ mod= new Setting.Power() });
+    categories.append (new Category(){ mod= new Setting.Power() });
+    categories.append (new Category(){ mod= new Setting.GPS() });
+    categories.append (new Category(){ mod= new Setting.GPS() });
+    categories.append (new Category(){ mod= new Setting.GPS() });
   
     stdout.printf ("categories.length () = %u\n", categories.length ());
+
+    // create sufficiently large arrays for Buttons and Icons
     buttons = new Button[categories.length ()];
+    icons = new Icon[categories.length ()];
 
     // iterate over all categories and create buttons
     for (int i = 0; i < categories.length (); i++) {
@@ -97,8 +110,7 @@ public int main( string[] args )
     quitbt.show();
     box.pack_end( quitbt );
 
-    stdout.printf ("before runloop\n");
-    run();
-    shutdown();
+    Elm.run();
+    Elm.shutdown();
     return 0;
 }

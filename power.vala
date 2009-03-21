@@ -18,14 +18,15 @@
  */
 
 /*
- * T.Power is a vala-settings plugin that display blanking timeout
+ * Setting.Power is a vala-settings plugin that display blanking timeout
  * and other power related settings
 */
-public class T.Power : T.Abstract
+public class Setting.Power : Setting.Abstract
 {
     private DBus.Connection dbus;
-    private dynamic DBus.Object dbus_disp;
-    private dynamic DBus.Object dbus_res;
+    private dynamic DBus.Object dbus_disp; //Display
+    private dynamic DBus.Object dbus_res;  //ResourcePolcies
+    private dynamic DBus.Object dbus_idle; //IdleNotifier
 
     // brightness slider elements
     private Elm.Box bright_box;
@@ -33,16 +34,23 @@ public class T.Power : T.Abstract
     private Elm.Label bright_v_label;
     private Elm.Slider bright;
 
-    // timeout elements
-    private string[] timeouts = {"idle","idle_dim","suspend"};
-    private Elm.Table tout_table;
-
     // dim/suspend Policy elements
     private Elm.Table dimPol_table;
     private Elm.Label dimPol_lab;
     private Elm.Toggle dimPol_tog;
     private Elm.Label suspPol_lab;
     private Elm.Toggle suspPol_tog;
+
+    // timeout elements
+    private string[] tout_strs = {"idle","idle_dim","suspend"};
+    private Elm.Table tout_table;
+    private Elm.Label[] tout_labels;
+    private Elm.Slider[] tout_sli;
+    private Elm.Label[] tout_v_labels;
+    private Elm.Entry adv_tout;
+
+    //GetTimeouts returns an array of 'timeout'
+    private class Timeout { public string state; public int time; }
 
     public Power()
     {
@@ -71,6 +79,13 @@ public class T.Power : T.Abstract
 
        // connect signal if the state of any resource changes
        this.dbus_res.ResourceChanged += cb_resource_changed;
+
+       this.dbus_idle = dbus.get_object ( "org.freesmartphone.odeviced",
+                                  "/org/freesmartphone/Device/IdleNotifier/0",
+                                  "org.freesmartphone.Device.IdleNotifier" );
+       //self.timeouts = this.dbus_idle.GetTimeouts(); // "busy""idle""idle_dim""idle_prelock""lock""suspend""awake"
+      // async calls return GLib.HashTable<string,int>? timeouts, GLib.Error? err)
+       // TODO: SetTimeout ( si ), listen to Signal: State ( s ) Method: GetState()
     }
 
     /*
@@ -148,7 +163,7 @@ public class T.Power : T.Abstract
         bright = new Elm.Slider(bright_box);
         bright.size_hint_align_set( -1.0, 0.5 );
         bright.size_hint_weight_set( 1.0, 1.0 );
-        bright.min_max_set( 0, 100 );
+        bright.min_max_set( 1, 100 );
         bright.value_set( brightval );
         bright.smart_callback_add( "delay,changed", cb_change_bright_value_delayed);
         bright.smart_callback_add( "changed", cb_change_bright_value);
@@ -202,15 +217,51 @@ public class T.Power : T.Abstract
         // The timout table
         tout_table = new Elm.Table( box );
         tout_table.size_hint_align_set( -1.0, -1.0 );
-        tout_table.size_hint_weight_set( 1.0, 1.0 );
+        tout_table.size_hint_weight_set( 1.0, 0.0 );
         tout_table.show();
         box.pack_start(tout_table);
 
-        //for (int i = 0; i < categories.length (); i++) {
-        //int i = 0;
-        foreach (string str in timeouts) {
-            debug(str);
+        GLib.HashTable<string,int>? timeouts = this.dbus_idle.GetTimeouts(); // "busy""idle""idle_dim""idle_prelock""lock""suspend""awake"
+
+        int row = 0;
+        uint num_touts = timeouts.size( );
+
+        // create an array of sufficient size
+        tout_labels = new Elm.Label[ num_touts ];
+        tout_sli = new Elm.Slider[ num_touts ];
+        tout_v_labels = new Elm.Label[ num_touts ];
+
+        foreach (string str in tout_strs) {
+            int tout = timeouts.lookup( str );
+            //debug("%s %d of %d entries", str, tout, (int)num_touts );
+            tout_labels[row] = new Elm.Label( tout_table );
+            tout_labels[row].label_set( str.replace("_"," ") );
+            tout_labels[row].show();
+            tout_table.pack( tout_labels[row], 0, row, 1, 1);
+
+            tout_sli[row] = new Elm.Slider( tout_table );
+            tout_sli[row].size_hint_align_set( -1.0, 0.5 );
+            tout_sli[row].size_hint_weight_set( 1.0, 1.0 );
+            tout_sli[row].min_max_set( -1, 30 );
+            tout_sli[row].value_set( tout );
+            tout_sli[row].show();
+            tout_table.pack( tout_sli[row], 1, row, 1, 1);
+
+            tout_v_labels[row] = new Elm.Label( tout_table );
+            tout_v_labels[row].label_set( tout.to_string() );
+            tout_v_labels[row].show();
+            tout_table.pack( tout_v_labels[row], 2, row, 1, 1);
+
+            row += 1;
         }
+
+        adv_tout = new Elm.Entry( tout_table );
+        adv_tout.editable_set( false );
+        adv_tout.single_line_set( true );
+        adv_tout.entry_set( "<a href=\"adv\">Show</a> advanced timeouts." );
+        adv_tout.show();
+        tout_table.pack( adv_tout, 0, row++, 3, 1);
+
         // End of timeout table
 
  
@@ -222,4 +273,10 @@ public class T.Power : T.Abstract
     {
         return "Power";
     }
+
+    public override string icon()
+    {
+        return "/usr/share/vala-settings/icons/icon_power.png";
+    }
+
 }

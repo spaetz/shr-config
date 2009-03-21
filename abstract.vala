@@ -18,7 +18,29 @@
  */
 using Elm;
 
-public abstract class T.Abstract
+
+/*  ValueSlider provides a name label, a slider, and a value label
+ *  it updates the value when the slider is moved. The elements still need to
+ *  be manually packed into a table, box, etc.
+ */
+public class Setting.ValueSlider {
+    Elm.Label name;
+    Elm.Slider slider;
+    Elm.Label value;
+
+    ValueSlider( Elm.Object parent ) {
+        init( parent );
+    }
+
+    private void init(  Elm.Object parent ) {
+        name  = new Elm.Label( parent );
+        slider= new Elm.Slider( parent );
+        value = new Elm.Label( parent );
+    }
+
+}
+
+public abstract class Setting.Abstract
 {
     //protected Elm.Box win; and it's main elm elements
     protected Elm.Win win;
@@ -34,7 +56,7 @@ public abstract class T.Abstract
     
     public void init(Elm.Box par)
     {
-        debug( "init module " );
+        debug( "init module %s", name() );
         this.p_parent = par;
         win = new Win( null, "settings", WinType.BASIC );
         win.title_set( name() );
@@ -82,5 +104,7 @@ public abstract class T.Abstract
     }
 
     public abstract string name();
+    public abstract string icon();
+
 }
 

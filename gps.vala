@@ -17,7 +17,7 @@
  *
  */
 
-public class T.GPS : T.Abstract
+public class Setting.GPS : Setting.Abstract
 {
     Elm.Bg bg;
 
@@ -38,6 +38,11 @@ public class T.GPS : T.Abstract
 
     public override string name()
     {
-        return "Window with background";
+        return "blah";
+    }
+
+    public override string icon()
+    {
+        return "/usr/share/vala-settings/icons/icon_gps.png";
     }
 }
