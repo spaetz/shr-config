@@ -2,11 +2,11 @@
 Version=0.0.1
 Encoding=UTF-8
 Name=vSettings
-TryExec=vala-settings
+TryExec=settings
 GenericName=SHR Settings
 Comment=Settings of SHR based Openmoko phone
 StartupNotify=true
-Exec=vala-settings
+Exec=settings
 Terminal=false
 Type=Application
 Categories=Settings;
