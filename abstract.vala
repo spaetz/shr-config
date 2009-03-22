@@ -24,20 +24,48 @@ using Elm;
  *  be manually packed into a table, box, etc.
  */
 public class Setting.ValueSlider {
-    Elm.Label name;
-    Elm.Slider slider;
-    Elm.Label value;
+    public Elm.Label label;
+    public Elm.Slider slider;
+    public Elm.Label vlabel;
 
-    ValueSlider( Elm.Object parent ) {
+    public ValueSlider( Elm.Object parent ) {
         init( parent );
     }
 
     private void init(  Elm.Object parent ) {
-        name  = new Elm.Label( parent );
-        slider= new Elm.Slider( parent );
-        value = new Elm.Label( parent );
+        label  = new Elm.Label( parent );
+        slider = new Elm.Slider( parent );
+        vlabel = new Elm.Label( parent );
+
+        label.size_hint_align_set( -1.0, 0.5 );
+        vlabel.size_hint_align_set( 1.0, 0.5 );
+        slider.size_hint_align_set( -1.0, 0.5 );
+        slider.size_hint_weight_set( 1.0, 0.0 );
+
+        //slider.smart_callback_add( "delay,changed", cb_change_value_delayed);
+        slider.smart_callback_add( "changed", cb_change_value);
     }
 
+    /*Callback to update the the value label when the value changed*/
+    public void cb_change_value ( Evas.Object obj, void* event_info ) {
+       Elm.Slider* p_sli = obj;
+       int newval = (int)p_sli->value_get();
+       vlabel.label_set( newval.to_string() );
+    }
+
+    // show() all the elements
+    public void show ( ) {
+        label.show();
+        slider.show();
+        vlabel.show();
+    }
+
+    // set the sliders value. Also update value label as no callback for
+    // event "changed" is issued when value_set()'ting. (consider that elm bug)
+    public void value_set ( int value ) {
+        slider.value_set( value );
+        vlabel.label_set( value.to_string() );
+    }
 }
 
 public abstract class Setting.Abstract
@@ -45,19 +73,14 @@ public abstract class Setting.Abstract
     //protected Elm.Box win; and it's main elm elements
     protected Elm.Win win;
     protected Elm.Box box;
-    private Elm.Button quitbt;
+    //private Elm.Button quitbt;
     private Elm.Bg bg;
 
-    //public DBus.Connection conn { set; get; }
-    //private DBus.Connection conn;
-    //private dynamic DBus.Object bluez;
     //public MainLoop loop { set; get; }
-    public Elm.Pager* p_parent;
     
-    public void init(Elm.Box par)
+    public void init()
     {
         debug( "init module %s", name() );
-        this.p_parent = par;
         win = new Win( null, "settings", WinType.BASIC );
         win.title_set( name() );
         win.autodel_set( true );
@@ -78,22 +101,25 @@ public abstract class Setting.Abstract
         box.show();
         win.resize_object_add(box);
 
-        quitbt = new Elm.Button( this.win );
-        quitbt.label_set("Quit");
-        quitbt.size_hint_weight_set( 1.0, 0.0 );
-        quitbt.size_hint_align_set( -1.0, 1.0 );
-        quitbt.show();
-        //quitbt.smart_callback_add( "clicked", close );
-        quitbt.smart_callback_add( "clicked", this.cb_back_to_main );
-        box.pack_end( quitbt );
+        /* disable quit button on module windows!
+         * quitbt = new Elm.Button( this.win );
+         * quitbt.label_set("Quit");
+         * quitbt.size_hint_weight_set( 1.0, 0.0 );
+         * quitbt.size_hint_align_set( -1.0, 1.0 );
+         * quitbt.show();
+         * //quitbt.smart_callback_add( "clicked", close );
+         * quitbt.smart_callback_add( "clicked", this.cb_back_to_main );
+         * box.pack_end( quitbt );
+         */
 
     }
-
+    /*
     private void cb_back_to_main() {
         // TODO disable GUI updates and stuff
         debug("closing module window");
         this.win.hide();
     }
+    */
 
     public abstract void run( Evas.Object obj, void* event_info ) throws GLib.Error;
 
@@ -101,10 +127,13 @@ public abstract class Setting.Abstract
     {
         debug( "close window" );
         win = null; // will call evas_object_del, hence close the window
+        box = null;
+        // finally init() this module again. Counterintuitive, but we might
+        // want to open it a second time and it needs to be inited then.
+        this.init( );
     }
 
     public abstract string name();
     public abstract string icon();
 
 }
-

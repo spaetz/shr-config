@@ -97,7 +97,7 @@ public int main( string[] args )
     // iterate over all categories and create buttons
     for (int i = 0; i < categories.length (); i++) {
         Category cat = categories.nth_data(i);
-        cat.mod.init( box );
+        cat.mod.init( );
         add_module (win, table, cat, i);
     }
 
