@@ -22,7 +22,9 @@ using Elm;
 public class Setting.Connectivity : Setting.Abstract
 {
     DBus.Connection dbus;
-    dynamic DBus.Object dbus_disp; //Display
+    dynamic DBus.Object dbus_wifi; //WiFi power
+    dynamic DBus.Object dbus_bt; //Bluetooth power
+    dynamic DBus.Object dbus_gsm; //GSM power
 
     //offline mode elements
     Frame power_frame;
@@ -33,12 +35,60 @@ public class Setting.Connectivity : Setting.Abstract
     Toggle wifi_power;
 
     /* Constructor of the class */
-    public Connectivity()
+    construct
     {
        this.dbus = DBus.Bus.get (DBus.BusType.SYSTEM);
-       this.dbus_disp = dbus.get_object ("org.freesmartphone.odeviced",
-                                 "/org/freesmartphone/Device/Display/0",
-                                 "org.freesmartphone.Device.Display");
+       this.dbus_wifi = dbus.get_object ("org.freesmartphone.odeviced",
+                                "/org/freesmartphone/Device/PowerControl/WiFi",
+                                "org.freesmartphone.Device.PowerControl");
+       this.dbus_bt   = dbus.get_object ("org.freesmartphone.odeviced",
+                            "/org/freesmartphone/Device/PowerControl/Bluetooth",
+                            "org.freesmartphone.Device.PowerControl");
+       //[METHOD].GetName() .GetPower() .Reset() .SetPower( b:power )
+       //[SIGNAL] .Power( s:device, b:power )
+
+       this.dbus_wifi.Power += cb_wifi_status_changed;
+
+       this.dbus_gsm = dbus.get_object ("org.freesmartphone.ogsmd",
+                                        "/org/freesmartphone/GSM/Device",
+                                        "org.freesmartphone.GSM.Device");
+    //GetFeatures()GetPowerStatus(). Get|SetAntennaPower( b:power )
+    //Get|SetSpeakerVolume( i:modem_volume )
+
+    }
+
+    private void cb_wifi_status_changed(dynamic DBus.Object wifi,
+                                        string device, bool status ) {
+        // TODO act here!
+        debug("Device %s has changed status to %s", device, (string) status );
+    }
+
+
+    /* callback when wifi toggle was switched */
+    private void cb_wifipower_changed (  Evas.Object obj, void* event_info ){
+       Elm.Toggle* p_tog = obj;
+       bool state = p_tog->state_get ( );
+       debug("WiFiState is now %d\n", (int) state);
+       // do async call to turn on/off wifi
+       dbus_wifi.SetPower( state );
+    }
+
+    /* callback when bt toggle was switched */
+    private void cb_btpower_changed (  Evas.Object obj, void* event_info ){
+       Elm.Toggle* p_tog = obj;
+       bool state = p_tog->state_get ( );
+       debug("BTState is now %d\n", (int) state);
+       // do async call to turn on/off bt
+       dbus_bt.SetPower( state );
+    }
+
+    /* callback when gsm toggle was switched */
+    private void cb_gsmpower_changed (  Evas.Object obj, void* event_info ){
+       Elm.Toggle* p_tog = obj;
+       bool state = p_tog->state_get ( );
+       debug("GSMState is now %d\n", (int) state);
+       // do async call to turn on/off gsm
+       dbus_gsm.SetAntennaPower( state );
     }
 
     public override void run( Evas.Object obj, void* event_info ) throws GLib.Error
@@ -61,18 +111,32 @@ public class Setting.Connectivity : Setting.Abstract
         offline_mode.label_set( "Offline Mode" );     
         power_table.pack( offline_mode, 0, 0, 3, 1);
 
+
+        bool gsm_status = dbus_gsm.GetAntennaPower();
         gsm_power = new Elm.Toggle( this.box );
+        gsm_power.state_set( gsm_status );
         gsm_power.show();
+        gsm_power.smart_callback_add( "changed", cb_gsmpower_changed );
         gsm_power.label_set( "GSM Modem" );     
         power_table.pack( gsm_power, 0, 1, 2, 1);
 
+        bool bt_status = dbus_bt.GetPower();
+        debug("current bt state is %d", (int) bt_status );
         bt_power = new Elm.Toggle( this.box );
+        bt_power.state_set( bt_status );
         bt_power.show();
+        bt_power.smart_callback_add( "changed", cb_btpower_changed );
         bt_power.label_set( "Bluetooth" );     
         power_table.pack( bt_power, 0, 2, 2, 1);
 
+        debug("before" );
+        bool wifi_status = dbus_wifi.GetPower();
+        debug("after");
+        debug("current wifi state is %d", (int)wifi_status );
         wifi_power = new Elm.Toggle( this.box );
+        wifi_power.state_set( wifi_status );
         wifi_power.show();
+        wifi_power.smart_callback_add( "changed", cb_wifipower_changed );
         wifi_power.label_set( "WiFi" );     
         power_table.pack( wifi_power, 0, 3, 2, 1);
 
