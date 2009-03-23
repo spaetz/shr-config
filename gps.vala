@@ -17,9 +17,23 @@
  *
  */
 
+using Elm;
+
 public class Setting.GPS : Setting.Abstract
 {
+    DBus.Connection dbus;
+    dynamic DBus.Object dbus_disp; //Display
+
     Elm.Bg bg;
+
+    /* Constructor of the class */
+    public GPS()
+    {
+       this.dbus = DBus.Bus.get (DBus.BusType.SYSTEM);
+       this.dbus_disp = dbus.get_object ("org.freesmartphone.odeviced",
+                                 "/org/freesmartphone/Device/Display/0",
+                                 "org.freesmartphone.Device.Display");
+    }
 
     public override void run( Evas.Object obj, void* event_info ) throws GLib.Error
     {

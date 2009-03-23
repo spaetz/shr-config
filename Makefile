@@ -1,6 +1,6 @@
 all: compile link
 
-compile: abstract.vala power.vala gps.vala main.vala
+compile: abstract.vala power.vala gps.vala connectivity.vala main.vala
 	valac -c -X -Os           \
 	            --pkg dbus-glib-1 \
 	            --pkg eina \
@@ -10,7 +10,7 @@ compile: abstract.vala power.vala gps.vala main.vala
 	            --save-temps \
 	            $?
 
-link: abstract.o power.o gps.o main.o
+link: abstract.o power.o gps.o connectivity.o main.o
 	$(CC) `pkg-config elementary dbus-glib-1 --libs` -o settings $?
 
 clean: 

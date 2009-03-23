@@ -68,7 +68,8 @@ public class Setting.ValueSlider {
     }
 }
 
-public abstract class Setting.Abstract
+/*---------------------------------------------------------------*/
+public abstract class Setting.Abstract : GLib.Object
 {
     //protected Elm.Box win; and it's main elm elements
     protected Elm.Win win;
@@ -77,10 +78,13 @@ public abstract class Setting.Abstract
     private Elm.Bg bg;
 
     //public MainLoop loop { set; get; }
-    
+
+    // A signal that tells main() to free this module
+    public signal void sig_on_close ();
+
     public void init()
     {
-        debug( "init module %s", name() );
+        //debug( "init module %s", name() );
         win = new Win( null, "settings", WinType.BASIC );
         win.title_set( name() );
         win.autodel_set( true );
@@ -107,30 +111,27 @@ public abstract class Setting.Abstract
          * quitbt.size_hint_weight_set( 1.0, 0.0 );
          * quitbt.size_hint_align_set( -1.0, 1.0 );
          * quitbt.show();
-         * //quitbt.smart_callback_add( "clicked", close );
-         * quitbt.smart_callback_add( "clicked", this.cb_back_to_main );
+         * quitbt.smart_callback_add( "clicked", close );
+         * //quitbt.smart_callback_add( "clicked", this.cb_back_to_main );
          * box.pack_end( quitbt );
          */
 
     }
-    /*
-    private void cb_back_to_main() {
-        // TODO disable GUI updates and stuff
-        debug("closing module window");
-        this.win.hide();
-    }
-    */
+
 
     public abstract void run( Evas.Object obj, void* event_info ) throws GLib.Error;
+
+    public void show() {
+        debug("stub function show module");
+    }
 
     public void close()
     {
         debug( "close window" );
         win = null; // will call evas_object_del, hence close the window
-        box = null;
-        // finally init() this module again. Counterintuitive, but we might
-        // want to open it a second time and it needs to be inited then.
-        this.init( );
+
+        // send sig to free this module instance
+        sig_on_close ();
     }
 
     public abstract string name();

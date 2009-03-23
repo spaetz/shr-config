@@ -24,6 +24,9 @@ Table table;
 Button[] buttons;
 Icon[] icons;
 
+
+
+
 public void add_module(Win win, Table table, Category c, int ind )
 {
     //stdout.printf ("%s\n", c.name);
@@ -32,15 +35,15 @@ public void add_module(Win win, Table table, Category c, int ind )
     //stdout.printf ("%d %d\n", row, col);
 
     icons[ind] = new Icon( win );
-    icons[ind].file_set( c.mod.icon() );
+    icons[ind].file_set( c.mod->icon() );
     icons[ind].smooth_set( false );
     //icons[ind].scale_set( false, false );
     icons[ind].no_scale_set( true );
 
     buttons[ind] = new Button( win );
-    buttons[ind].label_set( c.mod.name() );
+    buttons[ind].label_set( c.mod->name() );
     buttons[ind].icon_set( icons[ind] );
-    buttons[ind].smart_callback_add( "clicked", c.mod.run );
+    buttons[ind].smart_callback_add( "clicked", c.run );
     buttons[ind].show();
     buttons[ind].size_hint_align_set( 0.5, 0.5 );
     buttons[ind].size_hint_weight_set( 1.0, 1.0 );
@@ -48,14 +51,42 @@ public void add_module(Win win, Table table, Category c, int ind )
 }
 
 public class Category {
-    public Setting.Abstract mod;
-    public string name;
+    public Setting.Abstract* mod;
+    private Type _mod_type;
+    public Category(Type mod_type) {
+       //Type mod_type = typeof(Setting.Power);
+       debug("Register module %s", mod_type.name() );
+       _mod_type = mod_type;
+       mod = GLib.Object.new (_mod_type);
+       mod->init();
+    }
+
+    private void free_mod_instance() {
+       debug("Freeing module %s", _mod_type.name() );
+       mod = null;
+    }
+
+    public void run( Evas.Object obj, void* event_info ) {
+       if (mod == null) {
+           debug("Init and Run%s", _mod_type.name() );
+           mod = GLib.Object.new (_mod_type);
+       } else { debug("Just Run%s", _mod_type.name() ); }
+
+       debug("created new instance");
+       // connect close signal, so we free the odule after closing
+       mod->sig_on_close += free_mod_instance;
+
+       //finally actually run and show the module
+       mod->init();
+       mod->run( obj, event_info );
+    }
 }
 
 public int main( string[] args )
 {
     Elm.init( args );
 
+    //Setting.Abstract mod = new GLib.Type.from_name("Setting.Power");
     Win win = new Win( null, "settings", WinType.BASIC );
     win.title_set( "SHR-settings" );
     win.autodel_set( true );
@@ -82,11 +113,11 @@ public int main( string[] args )
     box.pack_start( table );
 
     GLib.SList<Category> categories = new GLib.SList<Category> ();
-    categories.append (new Category(){ mod= new Setting.Power() });
-    categories.append (new Category(){ mod= new Setting.Power() });
-    categories.append (new Category(){ mod= new Setting.GPS() });
-    categories.append (new Category(){ mod= new Setting.GPS() });
-    categories.append (new Category(){ mod= new Setting.GPS() });
+    categories.append (new Category( typeof( Setting.Connectivity )));
+    categories.append (new Category( typeof( Setting.Power  )));
+    categories.append (new Category( typeof( Setting.GPS )));
+    categories.append (new Category( typeof( Setting.GPS )));
+    categories.append (new Category( typeof( Setting.GPS )));
   
     stdout.printf ("categories.length () = %u\n", categories.length ());
 
@@ -97,7 +128,6 @@ public int main( string[] args )
     // iterate over all categories and create buttons
     for (int i = 0; i < categories.length (); i++) {
         Category cat = categories.nth_data(i);
-        cat.mod.init( );
         add_module (win, table, cat, i);
     }
 
