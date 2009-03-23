@@ -57,7 +57,7 @@ public class Category {
        //Type mod_type = typeof(Setting.Power);
        debug("Register module %s", mod_type.name() );
        _mod_type = mod_type;
-       mod = GLib.Object.new (_mod_type);
+       mod = GLib.Object.new (_mod_type, null);
        mod->init();
     }
 
@@ -69,7 +69,7 @@ public class Category {
     public void run( Evas.Object obj, void* event_info ) {
        if (mod == null) {
            debug("Init and Run%s", _mod_type.name() );
-           mod = GLib.Object.new (_mod_type);
+           mod = GLib.Object.new (_mod_type, null);
        } else { debug("Just Run%s", _mod_type.name() ); }
 
        debug("created new instance");

@@ -48,8 +48,8 @@ public class Setting.Power : Setting.Abstract
     private Elm.Check adv_tout;
 
     /* Constructor of the class */
-    public Power()
-    {
+    construct {
+       debug("Power() constructor");
        this.dbus = DBus.Bus.get (DBus.BusType.SYSTEM);
        this.dbus_disp = dbus.get_object ("org.freesmartphone.odeviced",
                                  "/org/freesmartphone/Device/Display/0",
