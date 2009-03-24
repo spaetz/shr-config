@@ -14,10 +14,7 @@ NULL =
 MAINTAINERCLEANFILES = aclocal.m4 compile config.guess config.sub \
                        configure depcomp install-sh ltmain.sh     \
                        Makefile.in missing config.h.in            \
-#                       mkinstalldirs \
-#                       eflvala-1.0.pc \
                        $(NULL)
+#                       mkinstalldirs
+#                       eflvala-1.0.pc
 
-#bin_PROGRAMS = settings
-#settings_SOURCES = abstract.vala power.vala gps.vala connectivity.vala main.vala
-#settings_LDADD = @LEXLIB@
