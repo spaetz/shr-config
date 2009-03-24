@@ -1,0 +1,7 @@
+System requirements
+===================
+- enlightenment elementary, valac, libeflvala
+
+compile and install
+===================
+./configure; make; make install

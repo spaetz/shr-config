@@ -1,0 +1,4 @@
+NULL =
+
+# initialize variables for unconditional += appending
+EXTRA_DIST =
