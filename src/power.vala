@@ -29,6 +29,7 @@ public class Setting.Power : Setting.Abstract
     private dynamic DBus.Object dbus_idle; //IdleNotifier
 
     // brightness slider elements
+    private Elm.Frame bright_frame;
     private Elm.Box bright_box;
     private ValueSlider bright;
 
@@ -128,13 +129,30 @@ public class Setting.Power : Setting.Abstract
     public override void run( Evas.Object obj, void* event_info ) throws GLib.Error
     {
         // The brightness slider box
-        int brightval = dbus_disp.GetBrightness ();
-        bright_box = new Elm.Box( box );
+        bright_frame = new Elm.Frame( box );
+        bright_frame.size_hint_align_set( -1.0, -1.0 );
+        bright_frame.size_hint_weight_set( 1.0, 1.0 );
+        bright_frame.style_set( "pad_small" );
+        bright_frame.show();
+        box.pack_start( bright_frame );
+
+
+        bright_box = new Elm.Box( bright_frame );
         bright_box.size_hint_align_set( -1.0, -1.0 );
         bright_box.size_hint_weight_set( 1.0, 1.0 );
-        bright_box.show();
+        int brightval = 0;
+        try {
+            brightval = dbus_disp.GetBrightness ();
+            bright_frame.content_set( bright_box );
+            bright_box.show();
+        } catch ( DBus.Error ex ) {
+            // failed, not showing the brightness box
+            debug ("Failed to get brightness via DBus, disabling");
+        } catch ( GLib.Error ex) {
+            // other failure. no dbus conection?
+            debug ("Failed DBus connection, disabling brightness");}
         bright_box.horizontal_set( true );
-        box.pack_start(bright_box);
+
 
         // add the Brightness slider
         bright  = new Setting.ValueSlider( bright_box );
@@ -175,9 +193,18 @@ public class Setting.Power : Setting.Abstract
         dimPol_tog.name_set( "Display" );
         dimPol_tog.scale_set( 1.4 );
         dimPol_tog.size_hint_weight_set( 1.0, 1.0 );
-        string dimPol = dbus_res.GetResourcePolicy( "Display" );
+
+        string dimPol = "";
+        try {
+            dimPol = dbus_res.GetResourcePolicy( "Display" );
+            dimPol_tog.show();
+        } catch ( DBus.Error ex ) {
+            // failed, not showing the brightness box
+            debug ("Failed to get dim Policy via DBus, disabling");
+        } catch ( GLib.Error ex) {
+            // other failure. no dbus conection?
+            debug ("Failed DBus connection, disabling dim policy");}
         dimPol_tog.state_set( dimPol != "enabled" );
-        dimPol_tog.show();
         dimPol_tog.smart_callback_add( "changed", cb_dimsuspPol_tog_changed );
         dimPol_table.pack ( dimPol_tog, 1, 0, 1, 1 );
 
@@ -188,14 +215,23 @@ public class Setting.Power : Setting.Abstract
         suspPol_lab.label_set( "Suspend");
         dimPol_table.pack ( suspPol_lab, 0, 1, 1, 1 );
 
+
         suspPol_tog = new Elm.Toggle( box );
         suspPol_tog.scale_set( 1.4 );
         suspPol_tog.name_set( "CPU" );
-        string suspPol = dbus_res.GetResourcePolicy( "CPU" );
+        string suspPol = "";
+        try {
+            suspPol = dbus_res.GetResourcePolicy( "CPU" );
+            // only show the toggle if it makes sense
+            if ( dimPol_tog.state_get() )
+                suspPol_tog.show();
+        } catch ( DBus.Error ex ) {
+            // failed, not showing the suspend toggle
+            debug ("Failed to get suspend Policy via DBus, disabling");
+        } catch ( GLib.Error ex) {
+            // other failure. no dbus conection?
+            debug ("Failed DBus connection, disabling suspend policy");}
         suspPol_tog.state_set( suspPol != "enabled" );
-        // only show the toggle if it makes sense
-        if ( dimPol_tog.state_get() )
-            suspPol_tog.show();
         suspPol_tog.smart_callback_add( "changed", cb_dimsuspPol_tog_changed);
         suspPol_tog.size_hint_weight_set( 1.0, 1.0 );
         dimPol_table.pack ( suspPol_tog, 1, 1, 1, 1 );
@@ -214,38 +250,46 @@ public class Setting.Power : Setting.Abstract
         tout_table = new Elm.Table( box );
         tout_table.size_hint_align_set( -1.0, -1.0 );
         tout_table.size_hint_weight_set( 1.0, 0.0 );
-        tout_table.show();
-        tout_frame.content_set( tout_table );
 
         // Get the timeout Hashtable
+        GLib.HashTable<string,int>? timeouts;
         // busy, idle, idle_dim, idle_prelock, lock, suspend, awake
-        // TODO: need to do async call here?
-        GLib.HashTable<string,int>? timeouts = this.dbus_idle.GetTimeouts();
 
         int row = 0;
-        uint num_touts = timeouts.size( );
+        try {
+            timeouts = this.dbus_idle.GetTimeouts();
+            tout_table.show();
+            tout_frame.content_set( tout_table );
 
-        // create an array of sufficient size
-        tout_sli = new ValueSlider [ num_touts ];
+            uint num_touts = timeouts.size( );
+            // create an array of sufficient size
+            tout_sli = new ValueSlider [ num_touts ];
 
-        foreach (string tout_str in tout_strs) {
-            int tout = timeouts.lookup( tout_str );
-            //debug("%s %d of %d entries", str, tout_str, (int)num_touts );
+            foreach (string tout_str in tout_strs) {
+                int tout = timeouts.lookup( tout_str );
+                //debug("%s %d of %d entries", str, tout_str, (int)num_touts );
 
-            // add a new ValueSlider for the timeout
-            tout_sli[row] = new ValueSlider ( tout_table );
-            tout_sli[row].label.label_set( tout_str.replace("_"," ") );
-            tout_sli[row].slider.min_max_set( -1, 60 );
-            tout_sli[row].slider.name_set( tout_str );
-            tout_sli[row].value_set( tout );
-            tout_sli[row].slider.smart_callback_add( "delay,changed", cb_change_tout_value);
-            tout_table.pack( tout_sli[row].label, 0, row, 1, 1);
-            tout_table.pack( tout_sli[row].slider, 1, row, 1, 1);
-            tout_table.pack( tout_sli[row].vlabel, 2, row, 1, 1);
-            tout_sli[row].show();
+                // add a new ValueSlider for the timeout
+                tout_sli[row] = new ValueSlider ( tout_table );
+                tout_sli[row].label.label_set( tout_str.replace("_"," ") );
+                tout_sli[row].slider.min_max_set( -1, 60 );
+                tout_sli[row].slider.name_set( tout_str );
+                tout_sli[row].value_set( tout );
+                tout_sli[row].slider.smart_callback_add( "delay,changed", cb_change_tout_value);
+                tout_table.pack( tout_sli[row].label, 0, row, 1, 1);
+                tout_table.pack( tout_sli[row].slider, 1, row, 1, 1);
+                tout_table.pack( tout_sli[row].vlabel, 2, row, 1, 1);
+                tout_sli[row].show();
 
-            row += 1;
-        }
+                row += 1;
+            } //end foreach
+
+        } catch ( DBus.Error ex ) {
+            // failed, not showing the timeouts
+            debug ("Failed to get timeouts via DBus, disabling");
+        } catch ( GLib.Error ex) {
+            // other failure. no dbus conection?
+            debug ("Failed DBus connection, disabling timeouts");}
 
         adv_tout = new Elm.Check( tout_table );
         tout_table.size_hint_align_set( -1.0, -1.0 );
