@@ -25,7 +25,7 @@ settings_SOURCES = \
 
 
 .vala.stamp: $(settings_VALASOURCES)
-	$(VALAC) -c --vapidir .. \
+	$(VALAC) -c \
 	            --pkg dbus-glib-1 \
 	            --pkg elm \
 	            --pkg evas \
