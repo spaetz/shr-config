@@ -32,8 +32,7 @@ PKG_CHECK_MODULES(DEPS,
   gobject-2.0 >= $GLIB_REQUIRED
   evas >= $EVAS_REQUIRED
   eina-0 >= $EINA_REQUIRED)
-# disable this check for now as libeflvala curiously does not register itself wit OW pkg-config
-#  eflvala-1.0 >= $EFLVALA_REQUIRED)
+  eflvala-1.0 >= $EFLVALA_REQUIRED)
 
 AC_SUBST(DEPS_CFLAGS)
 AC_SUBST(DEPS_LIBS)
