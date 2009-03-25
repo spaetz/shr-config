@@ -1,3 +1,4 @@
+
 #!/bin/sh
 
 #aclocal
@@ -5,4 +6,5 @@
 #automake --add-missing
 
 autoreconf -v --install || exit 1
-./configure
+
+$srcdir/configure "$@"
