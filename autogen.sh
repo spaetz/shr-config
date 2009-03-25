@@ -7,4 +7,4 @@
 
 autoreconf -v --install || exit 1
 
-$srcdir/configure "$@"
+#$srcdir/configure "$@"
