@@ -114,8 +114,8 @@ public int main( string[] args )
 
     GLib.SList<Category> categories = new GLib.SList<Category> ();
     categories.append (new Category( typeof( Setting.Connectivity )));
+    categories.append (new Category( typeof( Setting.Profiles )));
     categories.append (new Category( typeof( Setting.Power  )));
-    categories.append (new Category( typeof( Setting.GPS )));
     categories.append (new Category( typeof( Setting.GPS )));
     categories.append (new Category( typeof( Setting.GPS )));
   

@@ -10,6 +10,7 @@ settings_VALASOURCES = \
 	power.vala \
 	gps.vala \
 	connectivity.vala \
+	profiles.vala \
 	$(NULL)
 
 settings_LDADD = \
