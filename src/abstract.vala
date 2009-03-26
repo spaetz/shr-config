@@ -23,7 +23,9 @@ using Elm;
  *  it updates the value when the slider is moved. The elements still need to
  *  be manually packed into a table, box, etc.
  */
+/*---------------------------------------------------------------*/
 public class Setting.ValueSlider {
+/*---------------------------------------------------------------*/
     public Elm.Label label;
     public Elm.Slider slider;
     public Elm.Label vlabel;
@@ -70,6 +72,7 @@ public class Setting.ValueSlider {
 
 /*---------------------------------------------------------------*/
 public abstract class Setting.Abstract : GLib.Object
+/*---------------------------------------------------------------*/
 {
     //protected Elm.Box win; and it's main elm elements
     protected Elm.Win win;
@@ -119,7 +122,7 @@ public abstract class Setting.Abstract : GLib.Object
     }
 
 
-    public abstract void run( Evas.Object obj, void* event_info ) throws GLib.Error;
+    public abstract void run( Evas.Object obj, void* event_info );
 
     public void show() {
         debug("stub function show module");

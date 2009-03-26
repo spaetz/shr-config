@@ -138,7 +138,7 @@ public class Setting.Power : Setting.Abstract
     }
     
 
-    public override void run( Evas.Object obj, void* event_info ) throws GLib.Error
+    public override void run( Evas.Object obj, void* event_info )
     {
         // The brightness slider box
         bright_frame = new Elm.Frame( box );

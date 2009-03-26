@@ -27,16 +27,18 @@ public class Setting.Connectivity : Setting.Abstract
     dynamic DBus.Object dbus_gsm; //GSM power
 
     //offline mode elements
-    Elm.Frame power_frame;
-    Elm.Table power_table;
+    Elm.Frame  power_frame;
+    Elm.Table  power_table;
     Elm.Button offline_mode;
     Elm.Toggle gsm_power;
-    Elm.Label gsm_power_lab;
+    Elm.Label  gsm_power_lab;
     Elm.Button gsm_more;
-    Toggle bt_power;
-    Elm.Label bt_power_lab;
-    Toggle wifi_power;
-    Elm.Label wifi_power_lab;
+    Toggle     bt_power;
+    Elm.Label  bt_power_lab;
+    Elm.Button bt_more;
+    Toggle     wifi_power;
+    Elm.Label  wifi_power_lab;
+    Elm.Button wifi_more;
 
     /* Constructor of the class */
     construct
@@ -159,7 +161,7 @@ public class Setting.Connectivity : Setting.Abstract
 
 
 
-    public override void run( Evas.Object obj, void* event_info ) throws GLib.Error
+    public override void run( Evas.Object obj, void* event_info )
     {
         power_frame = new Elm.Frame( box );
         power_frame.label_set( "Device power status" );
@@ -183,7 +185,7 @@ public class Setting.Connectivity : Setting.Abstract
 
         gsm_power_lab = new Elm.Label( power_table );
         gsm_power_lab.size_hint_align_set( -1.0, 0.5 );
-        gsm_power_lab.label_set( "GSM Modem" );     
+        gsm_power_lab.label_set( "GSM" );     
         gsm_power_lab.show();
         power_table.pack( gsm_power_lab, 0, 1, 1, 1);
 
@@ -199,7 +201,7 @@ public class Setting.Connectivity : Setting.Abstract
         gsm_more.label_set( ">" );
         gsm_more.show();
         //gsm_more.smart_callback_add( "changed", cb_gsmpower_changed );
-        power_table.pack( gsm_more, 1, 2, 1, 1);
+        power_table.pack( gsm_more, 2, 1, 1, 1);
 
         bt_power_lab = new Elm.Label( power_table );
         bt_power_lab.size_hint_align_set( -1.0, 0.5 );
@@ -216,6 +218,12 @@ public class Setting.Connectivity : Setting.Abstract
         bt_power.smart_callback_add( "changed", cb_btpower_changed );
         power_table.pack( bt_power, 1, 2, 1, 1);
 
+        bt_more = new Elm.Button ( power_table );
+        bt_more.label_set( ">" );
+        bt_more.show();
+        //gsm_more.smart_callback_add( "changed", cb_gsmpower_changed );
+        power_table.pack( bt_more, 2, 2, 1, 1);
+
 
         wifi_power_lab = new Elm.Label( power_table );
         wifi_power_lab.size_hint_align_set( -1.0, 0.5 );
@@ -231,6 +239,12 @@ public class Setting.Connectivity : Setting.Abstract
         wifi_power.show();
         wifi_power.smart_callback_add( "changed", cb_wifipower_changed );
         power_table.pack( wifi_power, 1, 3, 1, 1);
+
+        wifi_more = new Elm.Button ( power_table );
+        wifi_more.label_set( ">" );
+        wifi_more.show();
+        //gsm_more.smart_callback_add( "changed", cb_gsmpower_changed );
+        power_table.pack( wifi_more, 2, 3, 1, 1);
 
         this.box.pack_start( power_frame );
         this.win.show();
