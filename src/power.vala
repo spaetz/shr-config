@@ -119,10 +119,18 @@ public class Setting.Power : Setting.Abstract
 
 
     public void cb_change_tout_value(  Evas.Object obj, void* event_info) {
-       Elm.Slider* p_sli = obj;
-       int newval = (int) p_sli->value_get();
-       debug("Change timeout for %s to %d", p_sli->name_get(), newval );
-       dbus_idle.SetTimeout( p_sli->name_get(), newval );
+        Elm.Slider* p_sli = obj;
+        int newval = (int) p_sli->value_get();
+        debug("Change timeout for %s to %d", p_sli->name_get(), newval );
+        try {
+            dbus_idle.SetTimeout( p_sli->name_get(), newval );
+        } catch ( DBus.Error ex ) {
+            // failed, not showing the brightness box
+            debug ("Failed to set brightness via DBus");
+        } catch ( GLib.Error ex) {
+            // other failure. no dbus conection?
+            debug ("Failed DBus connection, not setting brightness");}
+
     }
     
 

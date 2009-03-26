@@ -64,6 +64,14 @@ public class Setting.Connectivity : Setting.Abstract
     }
 
 
+    /* callback when offline mode button was clicked */
+    private void cb_offlinemode_clicked (  Evas.Object obj, void* event_info ){
+        // set GSM/BT/Wifi to off        
+        gsm_power.state_set( false );
+        bt_power.state_set( false );
+        wifi_power.state_set( false );
+    }
+
     /* callback when wifi toggle was switched */
     private void cb_wifipower_changed (  Evas.Object obj, void* event_info ){
        Elm.Toggle* p_tog = obj;
@@ -91,6 +99,24 @@ public class Setting.Connectivity : Setting.Abstract
        dbus_gsm.SetAntennaPower( state );
     }
 
+    /* callback when gsm toggle was switched on*/
+    private void cb_gsmpower_on (  Evas.Object obj, void* event_info ){
+       //Elm.Toggle* p_tog = obj;
+       //bool state = p_tog->state_get ( );
+       debug("GSM Power on!");
+       // do async call to turn on/off gsm
+       //dbus_gsm.SetAntennaPower( state );
+    }
+
+    /* callback when gsm toggle was switched off*/
+    private void cb_gsmpower_off (  Evas.Object obj, void* event_info ){
+       //Elm.Toggle* p_tog = obj;
+       //bool state = p_tog->state_get ( );
+       debug("GSM Power off!");
+       // do async call to turn on/off gsm
+       //dbus_gsm.SetAntennaPower( state );
+    }
+
     public override void run( Evas.Object obj, void* event_info ) throws GLib.Error
     {
         power_frame = new Elm.Frame( box );
@@ -109,14 +135,18 @@ public class Setting.Connectivity : Setting.Abstract
         offline_mode.size_hint_weight_set( 1.0, 0.0 );
         offline_mode.show();
         offline_mode.label_set( "Offline Mode" );     
+        offline_mode.smart_callback_add( "clicked", cb_offlinemode_clicked );
         power_table.pack( offline_mode, 0, 0, 3, 1);
 
 
         bool gsm_status = dbus_gsm.GetAntennaPower();
         gsm_power = new Elm.Toggle( this.box );
         gsm_power.state_set( gsm_status );
+        gsm_power.scale_set( 1.4 );
         gsm_power.show();
         gsm_power.smart_callback_add( "changed", cb_gsmpower_changed );
+        gsm_power.smart_callback_add( "elm,state,toggle,on", cb_gsmpower_on );
+        gsm_power.smart_callback_add( "elm,state,toggle,on", cb_gsmpower_off );
         gsm_power.label_set( "GSM Modem" );     
         power_table.pack( gsm_power, 0, 1, 2, 1);
 
@@ -124,6 +154,7 @@ public class Setting.Connectivity : Setting.Abstract
         debug("current bt state is %d", (int) bt_status );
         bt_power = new Elm.Toggle( this.box );
         bt_power.state_set( bt_status );
+        bt_power.scale_set( 1.4 );
         bt_power.show();
         bt_power.smart_callback_add( "changed", cb_btpower_changed );
         bt_power.label_set( "Bluetooth" );     
@@ -135,6 +166,7 @@ public class Setting.Connectivity : Setting.Abstract
         debug("current wifi state is %d", (int)wifi_status );
         wifi_power = new Elm.Toggle( this.box );
         wifi_power.state_set( wifi_status );
+        wifi_power.scale_set( 1.4 );
         wifi_power.show();
         wifi_power.smart_callback_add( "changed", cb_wifipower_changed );
         wifi_power.label_set( "WiFi" );     
