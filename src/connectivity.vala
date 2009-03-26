@@ -27,11 +27,12 @@ public class Setting.Connectivity : Setting.Abstract
     dynamic DBus.Object dbus_gsm; //GSM power
 
     //offline mode elements
-    Frame power_frame;
-    Table power_table;
-    Button offline_mode;
-    Toggle gsm_power;
+    Elm.Frame power_frame;
+    Elm.Table power_table;
+    Elm.Button offline_mode;
+    Elm.Toggle gsm_power;
     Elm.Label gsm_power_lab;
+    Elm.Button gsm_more;
     Toggle bt_power;
     Elm.Label bt_power_lab;
     Toggle wifi_power;
@@ -69,9 +70,12 @@ public class Setting.Connectivity : Setting.Abstract
 
     /* callback when offline mode button was clicked */
     private void cb_offlinemode_clicked (  Evas.Object obj, void* event_info ){
-        // set GSM/BT/Wifi to off        
+        // set GSM/BT/Wifi to off
+        set_gsm_power( false );        
         gsm_power.state_set( false );
+        set_bt_power( false );        
         bt_power.state_set( false );
+        set_wifi_power( false );        
         wifi_power.state_set( false );
     }
 
@@ -81,7 +85,7 @@ public class Setting.Connectivity : Setting.Abstract
        bool state = p_tog->state_get ( );
        debug("WiFiState is now %d\n", (int) state);
        // do async call to turn on/off wifi
-       dbus_wifi.SetPower( state );
+       set_wifi_power( state );
     }
 
     /* callback when bt toggle was switched */
@@ -90,35 +94,70 @@ public class Setting.Connectivity : Setting.Abstract
        bool state = p_tog->state_get ( );
        debug("BTState is now %d\n", (int) state);
        // do async call to turn on/off bt
-       dbus_bt.SetPower( state );
+       set_bt_power( state );
     }
+
 
     /* callback when gsm toggle was switched */
     private void cb_gsmpower_changed (  Evas.Object obj, void* event_info ){
        Elm.Toggle* p_tog = obj;
        bool state = p_tog->state_get ( );
        debug("GSMState is now %d\n", (int) state);
-       // do async call to turn on/off gsm
-       dbus_gsm.SetAntennaPower( state );
+       set_gsm_power( state );
     }
 
-    /* callback when gsm toggle was switched on*/
-    private void cb_gsmpower_on (  Evas.Object obj, void* event_info ){
-       //Elm.Toggle* p_tog = obj;
-       //bool state = p_tog->state_get ( );
-       debug("GSM Power on!");
+
+    /* function that turns GSM Antenna power on/off */
+    private bool set_gsm_power( bool state ) {
        // do async call to turn on/off gsm
-       //dbus_gsm.SetAntennaPower( state );
+       try {
+           dbus_gsm.SetAntennaPower( state );
+       } catch ( DBus.Error ex ) {
+            // failed, not showing the brightness box
+            debug ("Failed to reach DBus");
+            return false;
+       } catch ( GLib.Error ex) {
+            // other failure. no dbus conection?
+            debug ("Failed DBus connection, not switching GSM power");
+            return false;
+       }
+       return true;
     }
 
-    /* callback when gsm toggle was switched off*/
-    private void cb_gsmpower_off (  Evas.Object obj, void* event_info ){
-       //Elm.Toggle* p_tog = obj;
-       //bool state = p_tog->state_get ( );
-       debug("GSM Power off!");
-       // do async call to turn on/off gsm
-       //dbus_gsm.SetAntennaPower( state );
+    /* function that turns Bluetooth on/off */
+    private bool set_bt_power( bool state ) {
+       try {
+           dbus_bt.SetPower( state );
+       } catch ( DBus.Error ex ) {
+            // failed, not showing the brightness box
+            debug ("Failed to reach DBus");
+            return false;
+       } catch ( GLib.Error ex) {
+            // other failure. no dbus conection?
+            debug ("Failed DBus connection, not switching BT power");
+            return false;
+       }
+       return true;
     }
+
+    /* function that turns WiFi on/off */
+    private bool set_wifi_power( bool state ) {
+       // do async call to turn on/off wifi
+       try {
+           dbus_wifi.SetPower( state );
+       } catch ( DBus.Error ex ) {
+            // failed, not showing the brightness box
+            debug ("Failed to reach DBus");
+            return false;
+       } catch ( GLib.Error ex) {
+            // other failure. no dbus conection?
+            debug ("Failed DBus connection, not switching WiFi power");
+            return false;
+       }
+       return true;
+    }
+
+
 
     public override void run( Evas.Object obj, void* event_info ) throws GLib.Error
     {
@@ -154,10 +193,13 @@ public class Setting.Connectivity : Setting.Abstract
         gsm_power.scale_set( 1.4 );
         gsm_power.show();
         gsm_power.smart_callback_add( "changed", cb_gsmpower_changed );
-        gsm_power.smart_callback_add( "elm,state,toggle,on", cb_gsmpower_on );
-        gsm_power.smart_callback_add( "elm,state,toggle,on", cb_gsmpower_off );
         power_table.pack( gsm_power, 1, 1, 1, 1);
 
+        gsm_more = new Elm.Button ( power_table );
+        gsm_more.label_set( ">" );
+        gsm_more.show();
+        //gsm_more.smart_callback_add( "changed", cb_gsmpower_changed );
+        power_table.pack( gsm_more, 1, 2, 1, 1);
 
         bt_power_lab = new Elm.Label( power_table );
         bt_power_lab.size_hint_align_set( -1.0, 0.5 );
@@ -172,12 +214,12 @@ public class Setting.Connectivity : Setting.Abstract
         bt_power.scale_set( 1.4 );
         bt_power.show();
         bt_power.smart_callback_add( "changed", cb_btpower_changed );
-        power_table.pack( bt_power, 0, 2, 1, 1);
+        power_table.pack( bt_power, 1, 2, 1, 1);
 
 
         wifi_power_lab = new Elm.Label( power_table );
         wifi_power_lab.size_hint_align_set( -1.0, 0.5 );
-        wifi_power_lab.label_set( "Bluetooth" );     
+        wifi_power_lab.label_set( "WiFi" );     
         wifi_power_lab.show();
         power_table.pack( wifi_power_lab, 0, 3, 1, 1);
 
@@ -188,8 +230,7 @@ public class Setting.Connectivity : Setting.Abstract
         wifi_power.scale_set( 1.4 );
         wifi_power.show();
         wifi_power.smart_callback_add( "changed", cb_wifipower_changed );
-        wifi_power.label_set( "WiFi" );     
-        power_table.pack( wifi_power, 0, 3, 1, 1);
+        power_table.pack( wifi_power, 1, 3, 1, 1);
 
         this.box.pack_start( power_frame );
         this.win.show();

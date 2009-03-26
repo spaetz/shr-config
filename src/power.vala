@@ -17,10 +17,15 @@
  *
  */
 
+
+ //TODO: battery status? Or in a different module? 
+   //cat  /sys/class/power_supply/usb/device/usb_curlim
+   //cat /sys/class/power_supply/battery/uevent
+
 /*
  * Setting.Power is a vala-settings plugin that display blanking timeout
  * and other power related settings
-*/
+ */
 public class Setting.Power : Setting.Abstract
 {
     private DBus.Connection dbus;
