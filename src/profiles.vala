@@ -18,6 +18,7 @@
  */
 
 using Elm;
+using Ecore;
 
 public class Setting.Profiles : Setting.Abstract
 {
@@ -44,14 +45,22 @@ public class Setting.Profiles : Setting.Abstract
 
     }
 
+    public bool cb_idler_getprofiles ( ) {
+        debug("Entering idler. Fetch profiles");
+        GLib.Array<string> profiles = dbus_profile.GetProfiles( );
+        debug("%d",  (int)profiles.length);
+        return true; //don't run again
+    }
+
     public override void run( Evas.Object obj, void* event_info )
     {
         profile_sel = new Elm.Hoversel( this.box );
         profile_sel.label_set( "Profiles" );
         profile_sel.size_hint_weight_set( 1.0, 1.0 );
         profile_sel.show();
-        this.box.pack_start( profile_sel );
+        this.box.pack_start(profile_sel );
 
+        var idler = new Ecore.Idler( cb_idler_getprofiles );
         this.win.show();
     }
 

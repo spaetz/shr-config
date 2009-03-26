@@ -66,7 +66,8 @@ public class Setting.Connectivity : Setting.Abstract
     private void cb_wifi_status_changed(dynamic DBus.Object wifi,
                                         string device, bool status ) {
         // TODO act here!
-        debug("Device %s has changed status to %s", device, (string) status );
+        //debug("Device %s has changed status to %s", device, (string) status );
+        debug("Device %s has changed status to %d", device, (int) status);
     }
 
 

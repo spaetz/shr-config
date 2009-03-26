@@ -31,6 +31,7 @@ settings_SOURCES = \
 	            --pkg elm \
 	            --pkg evas \
 	            --pkg eina \
+	            --pkg ecore \
 	            --save-temps \
                     --basedir $(top_srcdir) \
 	            $^
