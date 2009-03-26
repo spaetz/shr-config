@@ -31,8 +31,11 @@ public class Setting.Connectivity : Setting.Abstract
     Table power_table;
     Button offline_mode;
     Toggle gsm_power;
+    Elm.Label gsm_power_lab;
     Toggle bt_power;
+    Elm.Label bt_power_lab;
     Toggle wifi_power;
+    Elm.Label wifi_power_lab;
 
     /* Constructor of the class */
     construct
@@ -130,7 +133,7 @@ public class Setting.Connectivity : Setting.Abstract
         power_table.show();
         power_frame.content_set( power_table );
 
-        offline_mode = new Elm.Button( this.box );
+        offline_mode = new Elm.Button( power_table );
         offline_mode.size_hint_align_set(  -1.0, -1.0 );
         offline_mode.size_hint_weight_set( 1.0, 0.0 );
         offline_mode.show();
@@ -139,38 +142,54 @@ public class Setting.Connectivity : Setting.Abstract
         power_table.pack( offline_mode, 0, 0, 3, 1);
 
 
+        gsm_power_lab = new Elm.Label( power_table );
+        gsm_power_lab.size_hint_align_set( -1.0, 0.5 );
+        gsm_power.label_set( "GSM Modem" );     
+        gsm_power_lab.show();
+        power_table.pack( gsm_power_lab, 0, 1, 1, 1);
+
         bool gsm_status = dbus_gsm.GetAntennaPower();
-        gsm_power = new Elm.Toggle( this.box );
+        gsm_power = new Elm.Toggle( power_table );
         gsm_power.state_set( gsm_status );
         gsm_power.scale_set( 1.4 );
         gsm_power.show();
         gsm_power.smart_callback_add( "changed", cb_gsmpower_changed );
         gsm_power.smart_callback_add( "elm,state,toggle,on", cb_gsmpower_on );
         gsm_power.smart_callback_add( "elm,state,toggle,on", cb_gsmpower_off );
-        gsm_power.label_set( "GSM Modem" );     
-        power_table.pack( gsm_power, 0, 1, 2, 1);
+        power_table.pack( gsm_power, 1, 1, 1, 1);
+
+
+        bt_power_lab = new Elm.Label( power_table );
+        bt_power_lab.size_hint_align_set( -1.0, 0.5 );
+        bt_power.label_set( "Bluetooth" );     
+        bt_power_lab.show();
+        power_table.pack( bt_power_lab, 0, 2, 1, 1);
 
         bool bt_status = dbus_bt.GetPower();
         debug("current bt state is %d", (int) bt_status );
-        bt_power = new Elm.Toggle( this.box );
+        bt_power = new Elm.Toggle( power_table );
         bt_power.state_set( bt_status );
         bt_power.scale_set( 1.4 );
         bt_power.show();
         bt_power.smart_callback_add( "changed", cb_btpower_changed );
-        bt_power.label_set( "Bluetooth" );     
-        power_table.pack( bt_power, 0, 2, 2, 1);
+        power_table.pack( bt_power, 0, 2, 1, 1);
 
-        debug("before" );
+
+        wifi_power_lab = new Elm.Label( power_table );
+        wifi_power_lab.size_hint_align_set( -1.0, 0.5 );
+        wifi_power.label_set( "Bluetooth" );     
+        wifi_power_lab.show();
+        power_table.pack( wifi_power_lab, 0, 3, 1, 1);
+
         bool wifi_status = dbus_wifi.GetPower();
-        debug("after");
         debug("current wifi state is %d", (int)wifi_status );
-        wifi_power = new Elm.Toggle( this.box );
+        wifi_power = new Elm.Toggle( power_table );
         wifi_power.state_set( wifi_status );
         wifi_power.scale_set( 1.4 );
         wifi_power.show();
         wifi_power.smart_callback_add( "changed", cb_wifipower_changed );
         wifi_power.label_set( "WiFi" );     
-        power_table.pack( wifi_power, 0, 3, 2, 1);
+        power_table.pack( wifi_power, 0, 3, 1, 1);
 
         this.box.pack_start( power_frame );
         this.win.show();
