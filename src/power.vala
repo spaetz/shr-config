@@ -50,7 +50,6 @@ public class Setting.Power : Setting.Abstract
 
     /* Constructor of the class */
     construct {
-       debug("Power() constructor");
        this.dbus = DBus.Bus.get (DBus.BusType.SYSTEM);
        this.dbus_disp = dbus.get_object ("org.freesmartphone.odeviced",
                                  "/org/freesmartphone/Device/Display/0",
