@@ -26,10 +26,10 @@ public class Setting.Profiles : Setting.Abstract
     dynamic DBus.Object dbus_profile;
     Ecore.Idler idler;
     Elm.Hoversel profile_sel;
+    const string str = "123456789dfdgdfgdgdfg";
 
     /* Constructor of the class */
-    public Profiles()
-    {
+    construct {
        this.dbus = DBus.Bus.get (DBus.BusType.SYSTEM);
        this.dbus_profile = dbus.get_object ("org.freesmartphone.opreferencesd",
                                  "/org/freesmartphone/Preferences",
@@ -45,18 +45,34 @@ public class Setting.Profiles : Setting.Abstract
 
     }
 
+
+    public void cb_profile_selected( Evas.Object obj, void* event_info ){
+       debug("selected a profile. How nice.");
+    } 
+
+
+
+    /* Idler gets called to populate the hoversel */
     public bool cb_idler_getprofiles ( ) {
         debug("Entering idler. Fetch profiles");
-        GLib.Array<string> profiles = dbus_profile.GetProfiles( );
-        debug("%d",  (int)profiles.length);
-        return true; //don't run again
+        //string[] profiles = dbus_profile.GetProfiles( );
+
+        //for (int i = 0; i < profiles.length; i++) {
+        for (int i = 0; i < 10; i++) {
+            //string profile = profiles[ i ];
+            //debug("%s", profile);
+            //profile_sel.item_add( string label, string icon_file, IconType icon_type, Evas.SmartCallback func );
+             profile_sel.item_add( str, "", Elm.IconType.NONE, cb_profile_selected );
+        }
+        return false; //don't run again
     }
 
     public override void run( Evas.Object obj, void* event_info )
     {
         profile_sel = new Elm.Hoversel( this.box );
         profile_sel.label_set( "Profiles" );
-        profile_sel.size_hint_weight_set( 1.0, 1.0 );
+        profile_sel.size_hint_weight_set( 0, 0 );
+        profile_sel.size_hint_align_set( 0.5, 1.0 );
         profile_sel.show();
         this.box.pack_start(profile_sel );
 
