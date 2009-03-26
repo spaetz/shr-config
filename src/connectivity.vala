@@ -144,7 +144,7 @@ public class Setting.Connectivity : Setting.Abstract
 
         gsm_power_lab = new Elm.Label( power_table );
         gsm_power_lab.size_hint_align_set( -1.0, 0.5 );
-        gsm_power.label_set( "GSM Modem" );     
+        gsm_power_lab.label_set( "GSM Modem" );     
         gsm_power_lab.show();
         power_table.pack( gsm_power_lab, 0, 1, 1, 1);
 
@@ -161,7 +161,7 @@ public class Setting.Connectivity : Setting.Abstract
 
         bt_power_lab = new Elm.Label( power_table );
         bt_power_lab.size_hint_align_set( -1.0, 0.5 );
-        bt_power.label_set( "Bluetooth" );     
+        bt_power_lab.label_set( "Bluetooth" );     
         bt_power_lab.show();
         power_table.pack( bt_power_lab, 0, 2, 1, 1);
 
@@ -177,7 +177,7 @@ public class Setting.Connectivity : Setting.Abstract
 
         wifi_power_lab = new Elm.Label( power_table );
         wifi_power_lab.size_hint_align_set( -1.0, 0.5 );
-        wifi_power.label_set( "Bluetooth" );     
+        wifi_power_lab.label_set( "Bluetooth" );     
         wifi_power_lab.show();
         power_table.pack( wifi_power_lab, 0, 3, 1, 1);
 
