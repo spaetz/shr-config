@@ -24,7 +24,7 @@ public class Setting.Profiles : Setting.Abstract
 {
     DBus.Connection dbus;
     dynamic DBus.Object dbus_profile;
-
+    Ecore.Idler idler;
     Elm.Hoversel profile_sel;
 
     /* Constructor of the class */
@@ -60,7 +60,7 @@ public class Setting.Profiles : Setting.Abstract
         profile_sel.show();
         this.box.pack_start(profile_sel );
 
-        var idler = new Ecore.Idler( cb_idler_getprofiles );
+        idler = new Ecore.Idler( cb_idler_getprofiles );
         this.win.show();
     }
 
