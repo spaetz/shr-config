@@ -55,14 +55,22 @@ public class Setting.Profiles : Setting.Abstract
     /* Idler gets called to populate the hoversel */
     public bool cb_idler_getprofiles ( ) {
         debug("Entering idler. Fetch profiles");
-        //string[] profiles = dbus_profile.GetProfiles( );
+        string[] profiles = {};
+        try {
+            profiles = dbus_profile.GetProfiles( );
+        } catch ( DBus.Error ex ) {
+            // failed
+            debug ("Failed to fetch profiles via DBus");
+        } catch ( GLib.Error ex) {
+            // other failure. no dbus conection?
+            debug ("Failed DBus connection");
+        }
 
-        //for (int i = 0; i < profiles.length; i++) {
-        for (int i = 0; i < 10; i++) {
-            //string profile = profiles[ i ];
-            //debug("%s", profile);
+        for (int i = 0; i < profiles.length; i++) {
+            string profile = profiles[ i ];
+            debug("%s", profile);
             //profile_sel.item_add( string label, string icon_file, IconType icon_type, Evas.SmartCallback func );
-             profile_sel.item_add( str, "", Elm.IconType.NONE, cb_profile_selected );
+            profile_sel.item_add( profile, "", Elm.IconType.NONE, cb_profile_selected );
         }
         return false; //don't run again
     }
@@ -71,6 +79,7 @@ public class Setting.Profiles : Setting.Abstract
     {
         profile_sel = new Elm.Hoversel( this.box );
         profile_sel.label_set( "Profiles" );
+        profile_sel.hover_parent_set( box );
         profile_sel.size_hint_weight_set( 0, 0 );
         profile_sel.size_hint_align_set( 0.5, 1.0 );
         profile_sel.show();
