@@ -132,7 +132,7 @@ public class Setting.Profiles : Setting.Abstract
     /* 
      * callback when a pref gets changed
      */
-    private void cb_pref_changed (DBus.Object pref, string key, Value val ) {
+    private void cb_pref_changed (FreeSmartphone.PreferencesService pref, string key, Value val ) {
         debug("received value changed signal");
     }
 
@@ -159,7 +159,7 @@ public class Setting.Profiles : Setting.Abstract
             string type = dbus_pro_set.get_type_( str );
             Value val = dbus_pro_set.get_value( str );
             if (type=="str") {
-              debug("str: %s type %s", val.get_string(), val.get_type().name());
+              debug("str: %s type", val.get_string());
             } else if (type=="int") {
               debug("int: %d", val.get_int());
             }
