@@ -1,0 +1,21 @@
+Short-term plans
+====================
+
+- Enable profile switching
+- Implement command line options (start a module directly)
+  This would enable a profile switcher from the AUX key
+- Show current profile settings (ring-tone, volume, etc)
+
+Mid-term plan
+=============
+- Make "show advanced timeouts" actually display them
+- Enable script to be run on WiFi on/off
+- Enable modifying of profile settings
+
+Wishlist
+========
+- GPS status screen
+- See/set date, time and timezone
+- Implement GLIB mainloop so we get DBUS signals and async calls
+  (or look into using e_dbus)
+- Show/Start/Stop services (init.d)
