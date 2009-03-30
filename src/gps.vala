@@ -35,7 +35,7 @@ public class Setting.GPS : Setting.Abstract
                                  "org.freesmartphone.Device.Display");
     }
 
-    public override void run( Evas.Object obj, void* event_info )
+    public override void run( Evas.Object? obj, void* event_info )
     {
         bg = new Elm.Bg( this.box );
         bg.file_set( "/usr/share/vala-settings/icons/icon_gps.png" );

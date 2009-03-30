@@ -44,7 +44,7 @@ public class Category {
 		mod = null;
 	}
 
-	public void run( Evas.Object obj, void* event_info ) {
+	public void run( Evas.Object? obj, void* event_info ) {
 		if (mod == null) {
 			debug("Init and Run%s", _mod_type.name() );
 			mod = GLib.Object.new (_mod_type, null);
@@ -68,7 +68,7 @@ public class MainApp {
 //------------------------------------------------------------------------
     // command line option handling
 	// set default vals like this: static int opt_optionname = 2;
-	static string opt_module  = "";
+	static string? opt_module  = null;
 	static bool opt_verbose   = false;
 	static bool opt_list_mods = false;
 
@@ -79,7 +79,13 @@ public class MainApp {
 		{ null }
 	};
 
-    // mein menu widgets
+    // definition of all available modules is stored here
+	static GLib.SList<Category> categories;
+
+    // pointer to command line args
+    static string[args] args;
+
+    // main menu widgets
 	Table table;
 	Button[] buttons;
 	Icon[] icons;
@@ -106,7 +112,10 @@ public class MainApp {
 	}
 
 
-	private int parse_opts( string[args] args ) {
+	/* is run to parse the command line options
+	 * returns: 0 if OK, 1 on failure
+     */
+	private int parse_opts() {
 		OptionContext opt_context;
         opt_context = new OptionContext (
 			"- central SHR settings administration");
@@ -116,40 +125,89 @@ public class MainApp {
         int retval = 0;
 
 		try { opt_context.parse ( ref args ); }
-		catch (GLib.OptionError.UNKNOWN_OPTION e){
-			//UNKNOWN_OPTION BAD_VALUE FAILED (OptionArgFunc cb failed)
-			stdout.printf ("Option parsing failure:\n%s\n", e.message);
-			retval = 2;
-			//} catch (GLib.OptionError.BAD_VALUE e){
-			//stdout.printf ("Bad value:\n%s\n", e.message);
-			//retval = 3;
-			//} catch (GLib.OptionError.FAILED e){
-			//stdout.printf ("Unspecified Options parsing error:\n%s\n", e.message);
-			//retval = 1;
-		} finally {
+		catch (GLib.OptionError e){
+			//UNKNOWN_OPTION, BAD_VALUE, FAILED (OptionArgFunc cb failed)
+			stdout.printf ("%s\n", e.message);
 			stdout.printf ("Run '%s --help' to see a full list of available command line options.\n\n", args[0]);
-			}
+			retval = 1;
+		}
 		return retval;
 	}
 
 
-	//Class constructor
+	/*
+	 * MainApp class constructor
+     */
 	MainApp( string[args] args ) {
-		//debug("MainApp constructor");
-        //TODO: how to call sys.exit(retval) in vala?
-        if (parse_opts( args ) == 0) {
-			show_main_menu( args );
-		}
+        // save pointer to args[]
+		this.args = args;
+        // Elm needs already to be inited when we register modules
+		Elm.init( args );
+
+		// define all possible modules here
+        categories = new GLib.SList<Category> ();
+		categories.append (new Category( typeof( Setting.Connectivity )));
+		categories.append (new Category( typeof( Setting.Profiles )));
+		categories.append (new Category( typeof( Setting.Power  )));
+		categories.append (new Category( typeof( Setting.GPS )));
+		categories.append (new Category( typeof( Setting.GPS )));
 	}
 
-	//Class deconstructor
-	//~MainApp() {
-		//debug("MainApp destructor");
-	//}
+
+	/*
+	 * MainApp class destructor
+     */
+	~MainApp() {
+		Elm.shutdown();
+	}
+
+
+
+	/* This is run in order to actually start the MainApp. It returns the error
+	 * value that will be handed back to the OS.
+	 * returns: 0:OK, 1:option parsing error, 2:module name not found
+	 */
+	public int run() {
+        int retval; //main app return value
+
+		//parse command line and return with error number if necessary
+        retval = parse_opts();
+        if (retval != 0) {return retval;}
+
+        // Do whatever command line options tell us to do:
+		if ( opt_list_mods ) {
+			// List all available modules and exit
+			stdout.printf("All available modules:\n");
+			foreach (Category category in categories) {
+				stdout.printf("- %s\n", category.mod->name());
+			}
+		} else if ( opt_module != null ) {
+			// start a specific module window
+            bool found = false;
+			foreach (Category category in categories) {
+				if ( category.mod->name() == opt_module ) {
+                    found = true;
+					// quit elm after closing this module
+					category.mod->exit_on_close = true;
+					category.run( null, "");
+					Elm.run();
+				}
+			}
+			if (!found) {
+				stderr.printf("Could not find module %s\n", opt_module);
+                retval = 2;
+			};
+
+		} else {
+			// show the main window (usually this should happen)
+			retval = show_main_menu();
+		}
+
+		return retval;
+	}
  
-	private int show_main_menu(  string[args] args ) {
+	private int show_main_menu( ) {
 		//Setting.Abstract mod = new GLib.Type.from_name("Setting.Power");
-		Elm.init( args );
 
 		Win win = new Win( null, "settings", WinType.BASIC );
 		win.title_set( "SHR-settings" );
@@ -176,13 +234,6 @@ public class MainApp {
 		table.show();
 		box.pack_start( table );
 
-		GLib.SList<Category> categories = new GLib.SList<Category> ();
-		categories.append (new Category( typeof( Setting.Connectivity )));
-		categories.append (new Category( typeof( Setting.Profiles )));
-		categories.append (new Category( typeof( Setting.Power  )));
-		categories.append (new Category( typeof( Setting.GPS )));
-		categories.append (new Category( typeof( Setting.GPS )));
-
 		// create sufficiently large arrays for Buttons and Icons
 		buttons = new Button[categories.length ()];
 		icons = new Icon[categories.length ()];
@@ -203,14 +254,12 @@ public class MainApp {
 		box.pack_end( quitbt );
 
 		Elm.run();
-		Elm.exit();
-		Elm.shutdown();
 		return 0;
 	}
 } //End of MainApp
 
 //------------------------ MAIN -------------------------------------
 public int main( string[] args ) {
-	new MainApp( args );
-    return 0;
+	MainApp app = new MainApp( args );
+    return app.run();
 }

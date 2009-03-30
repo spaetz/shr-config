@@ -82,8 +82,13 @@ public abstract class Setting.Abstract : GLib.Object
 
     //public MainLoop loop { set; get; }
 
-    // A signal that tells main() to free this module
+    // A signal that tells main() to 'free' this module
     public signal void sig_on_close ();
+
+	// call Elm.exit() after on closing this module?
+	public bool exit_on_close {
+		get; set; default = false;
+	}
 
     public void init()
     {
@@ -122,7 +127,7 @@ public abstract class Setting.Abstract : GLib.Object
     }
 
 
-    public abstract void run( Evas.Object obj, void* event_info );
+    public abstract void run( Evas.Object? obj, void* event_info );
 
     public void show() {
         debug("stub function show module");
@@ -130,11 +135,12 @@ public abstract class Setting.Abstract : GLib.Object
 
     public void close()
     {
-        debug( "close window" );
         win = null; // will call evas_object_del, hence close the window
 
         // send sig to free this module instance
         sig_on_close ();
+		// Exit elm if we only show this module window
+		if (exit_on_close) {Elm.exit();}
     }
 
     public abstract string name();

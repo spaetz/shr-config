@@ -167,7 +167,7 @@ public class Setting.Profiles : Setting.Abstract
         return false;
    }
 
-    public override void run( Evas.Object obj, void* event_info )
+    public override void run( Evas.Object? obj, void* event_info )
     {
         prof_table = new Elm.Table( this.box );
         prof_table.size_hint_weight_set( 1.0, 1.0 );

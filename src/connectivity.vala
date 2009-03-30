@@ -60,7 +60,6 @@ public class Setting.Connectivity : Setting.Abstract
                                         "org.freesmartphone.GSM.Device");
     //GetFeatures()GetPowerStatus(). Get|SetAntennaPower( b:power )
     //Get|SetSpeakerVolume( i:modem_volume )
-
     }
 
     private void cb_wifi_status_changed(dynamic DBus.Object wifi,
@@ -162,7 +161,7 @@ public class Setting.Connectivity : Setting.Abstract
 
 
 
-    public override void run( Evas.Object obj, void* event_info )
+    public override void run( Evas.Object? obj, void* event_info )
     {
         power_frame = new Elm.Frame( box );
         power_frame.label_set( "Device power status" );
