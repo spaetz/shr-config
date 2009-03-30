@@ -98,17 +98,29 @@ public class Setting.Power : Setting.Abstract
        bool state = p_tog->state_get ( );
        string res = p_tog->name_get ( );
        debug("State is now %d %s\n", (int) state, res );
-       if (state) {
-           // toggle moved to on, so set ResourcePolicy to Auto
-           dbus_res.SetResourcePolicy( res, "auto" );
-           this.suspPol_tog.show();
-       } else {
-           // toggle moved to off, enable Resource permanently
-           dbus_res.SetResourcePolicy( res, "enabled" );
-           // if Display dimming is disabled,
-           // hide the nonsensical suspend option.
-           if (res == "Display") this.suspPol_tog.hide();
-       }
+
+	   try {
+		   
+		   if (state) {
+			   // toggle moved to on, so set ResourcePolicy to Auto
+			   dbus_res.SetResourcePolicy( res, "auto" );
+			   this.suspPol_tog.show();
+		   } else {
+			   // toggle moved to off, enable Resource permanently
+			   dbus_res.SetResourcePolicy( res, "enabled" );
+			   // if Display dimming is disabled,
+			   // hide the nonsensical suspend option.
+			   if (res == "Display") this.suspPol_tog.hide();
+		   }
+	   } catch ( DBus.Error ex ) {
+		   // failed
+		   debug ("Failed to set policy via DBus");
+		   p_tog->state_set ( !state );
+	   } catch ( GLib.Error ex) {
+		   // other failure. no dbus conection?
+		   debug ("Failed DBus connection");
+		   p_tog->state_set ( !state );
+	   }
     }
 
 
@@ -116,9 +128,17 @@ public class Setting.Power : Setting.Abstract
     {
        Elm.Slider* p_sli = obj;
        int newval = (int) p_sli->value_get();
-       //TODO: put dbus call in a separate method that throws DBus Errors
-       dbus_disp.SetBrightness ( newval );
-       debug("Set new brightness value %d", newval);
+
+	   try {
+		   dbus_disp.SetBrightness ( newval );
+		   debug("Set new brightness value %d", newval);
+	   } catch ( DBus.Error ex ) {
+		   // failed
+		   debug ("Failed to set brightness via DBus");
+	   } catch ( GLib.Error ex) {
+		   // other failure. no dbus conection?
+		   debug ("Failed DBus connection");
+	   }
     }
 
 

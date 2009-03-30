@@ -51,9 +51,11 @@ public class Setting.Profiles : Setting.Abstract
     // profile items in order we want to show them. inited in class constructor
     GLib.HashTable<string,pro_item?> pro_items;
 
+    //
     struct pro_item {
         public string name;
-        public Elm.Label* val_label;
+        public Elm.Label* name_lab;
+        public Elm.Label* val_lab;
     }
 
     /* Constructor of the class */
@@ -90,8 +92,25 @@ public class Setting.Profiles : Setting.Abstract
     }
 
 
+	/*
+	 * callback, when a new profile was selected from hoversel
+	 */
     public void cb_profile_selected( Evas.Object obj, void* event_info ){
        debug("selected a profile. How nice.");
+       //Elm.HoverselItem* item = obj;
+       debug("item name %s", obj.name_get());
+	   try{
+		   dbus_profile.SetProfile();
+	   } catch ( DBus.Error ex ) {
+		   // failed
+		   debug ("Failed to set profiles via DBus");
+           return;
+	   } catch ( GLib.Error ex) {
+		   // other failure. no dbus conection?
+		   debug ("Failed DBus connection");
+		   return;
+	   }
+
     } 
 
 
@@ -116,15 +135,16 @@ public class Setting.Profiles : Setting.Abstract
             return false;
         }
 
-        //set name of current profile
+        //set name of current profile on Hoversel and text label
+		profile_sel.label_set(cur_prof );
         cur_prof_v.label_set( cur_prof );
 
         //populate hoversel with all profile names
         for (int i = 0; i < profiles.length; i++) {
-            //string profile = ;
-            profile_sel.item_add( profiles[ i ], "", Elm.IconType.NONE, cb_profile_selected );
+            profile_sel.item_add( profiles[ i ], "", Elm.IconType.NONE, 
+								  cb_profile_selected );
         }
-        return false; //don't run again
+        return false; //don't run idler again
     }
 
 
@@ -132,7 +152,8 @@ public class Setting.Profiles : Setting.Abstract
     /* 
      * callback when a pref gets changed
      */
-    private void cb_pref_changed (FreeSmartphone.PreferencesService pref, string key, Value val ) {
+    private void cb_pref_changed (FreeSmartphone.PreferencesService pref, 
+								  string key, Value val ) {
         debug("received value changed signal");
     }
 
@@ -146,8 +167,11 @@ public class Setting.Profiles : Setting.Abstract
         //[METHOD].GetKeys() .GetType( s:key ) .Get|SetValue(key (,val))
         //[METHOD] .IsProfilable( s:key )
         //[SIGNAL] .Notify( s:key, v:val)
-
+        
         debug("Idler2");
+
+		// table row is a counter to determine which table row to populate
+        int table_row = 1;
 
         // hook up the notify signal
         dbus_pro_set.notify += cb_pref_changed;
@@ -156,13 +180,31 @@ public class Setting.Profiles : Setting.Abstract
         //'ring-volume','message-volume','message-length'
         foreach (string str in pro_items.get_keys()) {
             debug("handling %s",str);
-            string type = dbus_pro_set.get_type_( str );
-            Value val = dbus_pro_set.get_value( str );
-            if (type=="str") {
-              debug("str: %s type", val.get_string());
-            } else if (type=="int") {
-              debug("int: %d", val.get_int());
-            }
+			table_row += 1;
+            string strval;
+
+			try {
+				//TODO, can't the type be inferred without additional DBus call?
+				string type = dbus_pro_set.get_type_( str );
+				Value val = dbus_pro_set.get_value( str );
+				if (type=="str") {
+					strval = val.get_string();
+				} else if (type=="int") {
+					strval = val.get_int().to_string();
+				}
+			} catch (DBus.Error ex) {
+				critical("Could not get profile attributes via DBus: %s", ex.message);
+				return false;  // don't run idler again
+			}
+	
+			// create the name label
+			pro_item item = pro_items.lookup( str );
+			item.name_lab = new Elm.Label( prof_table );
+			item.name_lab->label_set( item.name );
+			item.name_lab->show();
+            prof_table.pack( item.name_lab, 0, table_row, 1, 1);
+
+
         } 
         return false;
    }

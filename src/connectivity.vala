@@ -189,13 +189,22 @@ public class Setting.Connectivity : Setting.Abstract
         gsm_power_lab.show();
         power_table.pack( gsm_power_lab, 0, 1, 1, 1);
 
-        bool gsm_status = dbus_gsm.GetAntennaPower();
+
         gsm_power = new Elm.Toggle( power_table );
-        gsm_power.state_set( gsm_status );
         gsm_power.scale_set( 1.4 );
-        gsm_power.show();
+		try {
+			bool gsm_status = dbus_gsm.GetAntennaPower();
+			gsm_power.state_set( gsm_status );
+			gsm_power.show();
+        } catch ( DBus.Error ex ) {
+            // failed
+            debug ("Failed to antenna power via DBus");
+        } catch ( GLib.Error ex) {
+            // other failure. no dbus conection?
+            debug ("Failed DBus connection");
+        }
         gsm_power.smart_callback_add( "changed", cb_gsmpower_changed );
-        power_table.pack( gsm_power, 1, 1, 1, 1);
+		power_table.pack( gsm_power, 1, 1, 1, 1);
 
         gsm_more = new Elm.Button ( power_table );
         gsm_more.label_set( ">" );
@@ -209,12 +218,21 @@ public class Setting.Connectivity : Setting.Abstract
         bt_power_lab.show();
         power_table.pack( bt_power_lab, 0, 2, 1, 1);
 
-        bool bt_status = dbus_bt.GetPower();
-        debug("current bt state is %d", (int) bt_status );
+
         bt_power = new Elm.Toggle( power_table );
-        bt_power.state_set( bt_status );
         bt_power.scale_set( 1.4 );
-        bt_power.show();
+		try {
+			bool bt_status = dbus_bt.GetPower();
+			bt_power.state_set( bt_status );
+			bt_power.show();
+			debug("current bt state is %d", (int) bt_status );
+        } catch ( DBus.Error ex ) {
+            // failed
+            debug ("Failed to bluetooth status via DBus");
+        } catch ( GLib.Error ex) {
+            // other failure. no dbus conection?
+            debug ("Failed DBus connection");
+        }
         bt_power.smart_callback_add( "changed", cb_btpower_changed );
         power_table.pack( bt_power, 1, 2, 1, 1);
 
@@ -231,12 +249,20 @@ public class Setting.Connectivity : Setting.Abstract
         wifi_power_lab.show();
         power_table.pack( wifi_power_lab, 0, 3, 1, 1);
 
-        bool wifi_status = dbus_wifi.GetPower();
-        debug("current wifi state is %d", (int)wifi_status );
         wifi_power = new Elm.Toggle( power_table );
-        wifi_power.state_set( wifi_status );
         wifi_power.scale_set( 1.4 );
-        wifi_power.show();
+		try {
+			bool wifi_status = dbus_wifi.GetPower();
+			wifi_power.state_set( wifi_status );
+			wifi_power.show();
+			debug("current wifi state is %d", (int)wifi_status );
+        } catch ( DBus.Error ex ) {
+            // failed
+            debug ("Failed to bluetooth status via DBus");
+        } catch ( GLib.Error ex) {
+            // other failure. no dbus conection?
+            debug ("Failed DBus connection");
+        }
         wifi_power.smart_callback_add( "changed", cb_wifipower_changed );
         power_table.pack( wifi_power, 1, 3, 1, 1);
 

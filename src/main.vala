@@ -32,8 +32,7 @@ public class Category {
 	private Type _mod_type;
 
 	public Category(Type mod_type) {
-        //Type mod_type = typeof(Setting.Power);
-		debug("Register module %s", mod_type.name() );
+		//debug("Register module %s", mod_type.name() );
 		_mod_type = mod_type;
 		mod = GLib.Object.new (_mod_type, null);
 		mod->init();
