@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2009 Michael 'Mickey' Lauer <mlauer@vanille-media.de>
+ * Copyright (C) 2009 Sebastian Spaeth <Sebastian@SSpaeth.de>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -39,8 +39,8 @@ public class Setting.Profiles : Setting.Abstract
     DBus.Connection conn;
     dynamic DBus.Object dbus_profile;
     FreeSmartphone.PreferencesService dbus_pro_set;
-    Ecore.Idler idler;
-    Ecore.Idler idler2;
+	// array that keeps handles to idlers so they don't go away.
+    Ecore.Idler[] idler;
 
     //profile selection items
     Elm.Table prof_table;
@@ -48,8 +48,10 @@ public class Setting.Profiles : Setting.Abstract
     Elm.Label cur_prof_v;
     Elm.Hoversel profile_sel;
 
-    // profile items in order we want to show them. inited in class constructor
-    GLib.HashTable<string,pro_item?> pro_items;
+    // profile characteristics. inited in class constructor
+    static GLib.HashTable<string, pro_item?> pro_items;
+    // links hoversel items to profile names
+    GLib.HashTable<HoverselItem*,string> hItem_map;
 
     //
     struct pro_item {
@@ -69,6 +71,9 @@ public class Setting.Profiles : Setting.Abstract
 
        dbus_pro_set = (FreeSmartphone.PreferencesService) conn.get_object<PreferencesService> ("org.freesmartphone.opreferencesd", "/org/freesmartphone/Preferences/phone");
 
+	   // hook up the notify signal
+	   dbus_pro_set.notify += cb_pref_changed;
+
        //dbus_pro_set = dbus.get_object ("org.freesmartphone.opreferencesd",
        //                         "/org/freesmartphone/Preferences/phone",
        //                         "org.freesmartphone.Preferences.Service");
@@ -80,7 +85,10 @@ public class Setting.Profiles : Setting.Abstract
        //         .IsProfilable( s:key ) .SetValue( s:key, v:value )
        //[SIGNAL] .Notify( s:key, v:value )
 
-       pro_items = new GLib.HashTable<string,pro_item?>(GLib.direct_hash, GLib.str_equal);
+	   //create map from hoverselItem to profile name. populated later
+	   hItem_map = new GLib.HashTable<HoverselItem,string>(direct_hash, direct_equal);
+
+       pro_items = new GLib.HashTable<string,pro_item?>(GLib.str_hash, GLib.str_equal);
        pro_items.insert( "ring-tone", pro_item() {name="Ringtone"});
        pro_items.insert( "ring-volume", pro_item() {name="Ring volume"});
        pro_items.insert( "ring-loop", pro_item() {name="Ring loop"});
@@ -96,11 +104,10 @@ public class Setting.Profiles : Setting.Abstract
 	 * callback, when a new profile was selected from hoversel
 	 */
     public void cb_profile_selected( Evas.Object obj, void* event_info ){
-       debug("selected a profile. How nice.");
-       //Elm.HoverselItem* item = obj;
-       debug("item name %s", obj.name_get());
+		string? profile = hItem_map.lookup( event_info );
+		debug("selected a profile. How nice %s .", profile);
 	   try{
-		   dbus_profile.SetProfile();
+		   dbus_profile.SetProfile( profile );
 	   } catch ( DBus.Error ex ) {
 		   // failed
 		   debug ("Failed to set profiles via DBus");
@@ -110,7 +117,9 @@ public class Setting.Profiles : Setting.Abstract
 		   debug ("Failed DBus connection");
 		   return;
 	   }
-
+       // update the profile characteristics
+	   // obs: idler2 was used in run() but is unused by now
+	   idler += new Idler(cb_idler_getprofiledata);
     } 
 
 
@@ -119,12 +128,10 @@ public class Setting.Profiles : Setting.Abstract
     public bool cb_idler_getprofiles ( ) {
         debug("Entering idler. Fetch profiles");
         string[] profiles = {};
-        string cur_prof;
 
         //issue dbus calls to get name of all profiles and of current one
         try {
             profiles = dbus_profile.GetProfiles( );
-            cur_prof = dbus_profile.GetProfile( );
         } catch ( DBus.Error ex ) {
             // failed
             debug ("Failed to fetch profiles via DBus");
@@ -135,14 +142,13 @@ public class Setting.Profiles : Setting.Abstract
             return false;
         }
 
-        //set name of current profile on Hoversel and text label
-		profile_sel.label_set(cur_prof );
-        cur_prof_v.label_set( cur_prof );
-
-        //populate hoversel with all profile names
+        //populate hoversel with all profile names and store handle to item
         for (int i = 0; i < profiles.length; i++) {
-            profile_sel.item_add( profiles[ i ], "", Elm.IconType.NONE, 
-								  cb_profile_selected );
+            unowned HoverselItem item = profile_sel.item_add( profiles[ i ], 
+								        "", Elm.IconType.NONE, 
+										cb_profile_selected);
+			// store linkage between HoverselItem handle to profile name
+			hItem_map.insert(item, profiles[i] );
         }
         return false; //don't run idler again
     }
@@ -161,27 +167,29 @@ public class Setting.Profiles : Setting.Abstract
 
     //-------------------------------------------------------------
     /* 
-     * Idler gets called to populate the current profile data 
+     * Idler gets called to populate or update the current profile data 
      */
     public bool cb_idler_getprofiledata ( ) {
-        //[METHOD].GetKeys() .GetType( s:key ) .Get|SetValue(key (,val))
-        //[METHOD] .IsProfilable( s:key )
-        //[SIGNAL] .Notify( s:key, v:val)
-        
-        debug("Idler2");
-
 		// table row is a counter to determine which table row to populate
         int table_row = 1;
+		string current_profile;
+		try {
+			current_profile = dbus_profile.GetProfile( );
+		} catch (DBus.Error ex) {
+			critical("Could not get profile attributes via DBus: %s", ex.message);
+			return false;  // don't run idler again
+		}
 
-        // hook up the notify signal
-        dbus_pro_set.notify += cb_pref_changed;
+        //set name of current profile on Hoversel and text label
+		profile_sel.label_set( current_profile );
+        cur_prof_v.label_set( current_profile );
 
         //'ring-loop''message-loop''ring-tone','ring-length','message-tone',
         //'ring-volume','message-volume','message-length'
         foreach (string str in pro_items.get_keys()) {
             debug("handling %s",str);
 			table_row += 1;
-            string strval;
+            string strval = "";
 
 			try {
 				//TODO, can't the type be inferred without additional DBus call?
@@ -196,15 +204,29 @@ public class Setting.Profiles : Setting.Abstract
 				critical("Could not get profile attributes via DBus: %s", ex.message);
 				return false;  // don't run idler again
 			}
-	
-			// create the name label
-			pro_item item = pro_items.lookup( str );
-			item.name_lab = new Elm.Label( prof_table );
-			item.name_lab->label_set( item.name );
-			item.name_lab->show();
-            prof_table.pack( item.name_lab, 0, table_row, 1, 1);
+			// create or update the name label
+			unowned pro_item? item = pro_items.lookup( str );
+            if (item == null) {debug("not found proitem %s", str);}
+			else {
+				if (item.name_lab == null) {
+					// first run. Create a new name and value label
+					debug("first run, create new name label");
+					item.name_lab = new Elm.Label( prof_table );
+					item.name_lab->label_set( item.name );
+					item.name_lab->size_hint_weight_set( 0, 0 );
+					item.name_lab->size_hint_align_set( -1.0, -1.0 );
+					item.name_lab->show();
+					prof_table.pack( item.name_lab, 0, table_row, 1, 1);
 
-
+					item.val_lab = new Elm.Label( prof_table );
+					item.val_lab->size_hint_weight_set( 0, 0 );
+					item.val_lab->size_hint_align_set( -1.0, -1.0 );
+					item.val_lab->show();
+					prof_table.pack( item.val_lab, 1, table_row, 1, 1);
+				}
+				// update value label on creating and updating
+				item.val_lab->label_set( strval );
+			}
         } 
         return false;
    }
@@ -241,8 +263,9 @@ public class Setting.Profiles : Setting.Abstract
         cur_prof_v.show();
         prof_table.pack( cur_prof_v, 1, 1, 1, 1);
 
-        idler = new Ecore.Idler( cb_idler_getprofiles );
-        idler2 = new Ecore.Idler( cb_idler_getprofiledata );
+        idler  = new Ecore.Idler[0];
+		idler += new Ecore.Idler( cb_idler_getprofiles );
+        idler += new Ecore.Idler( cb_idler_getprofiledata );
         this.win.show();
     }
 
