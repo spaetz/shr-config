@@ -1,16 +1,13 @@
 Short-term plans
 ====================
+- Make "show advanced timeouts" actually display them
+- Enable script to be run on WiFi on/off
 
-- Enable profile switching
-- Implement command line options (start a module directly)
-  This would enable a profile switcher from the AUX key
-- Show current profile settings (ring-tone, volume, etc)
 
 Mid-term plan
 =============
-- Make "show advanced timeouts" actually display them
-- Enable script to be run on WiFi on/off
 - Enable modifying of profile settings
+- Show current SIM/operator information
 
 Wishlist
 ========
@@ -19,3 +16,15 @@ Wishlist
 - Implement GLIB mainloop so we get DBUS signals and async calls
   (or look into using e_dbus)
 - Show/Start/Stop services (init.d)
+- add a --restore command line option, that gets called on startup and sets all those settings that are not properly set by frameworkd.
+- Add a shortcuts module that allows to run user-defined commands on a button press.
+- Bluetooth settings
+- somehow connman integration... (unclear yet)
+- Some kind of volume slider
+
+DONE :-)
+========
+- Enable profile switching
+- Implement command line options (start a module directly)
+  This would enable a profile switcher from the AUX key
+- Show current profile settings (ring-tone, volume, etc)

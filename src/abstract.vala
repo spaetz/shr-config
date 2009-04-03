@@ -76,24 +76,24 @@ public abstract class Setting.Abstract : GLib.Object
 {
     //protected Elm.Box win; and it's main elm elements
     protected Elm.Win win;
-    protected Elm.Box box;
+    public Elm.Box box;
     //private Elm.Button quitbt;
     private Elm.Bg bg;
 
     //public MainLoop loop { set; get; }
 
     // A signal that tells main() to 'free' this module
-    public signal void sig_on_close ();
+    protected signal void sig_on_close ();
 
 	// call Elm.exit() after on closing this module?
 	public bool exit_on_close {
 		get; set; default = false;
 	}
 
-    public void init()
+    public void init( Elm.Object? parent )
     {
         //debug( "init module %s", name() );
-        win = new Win( null, "settings", WinType.BASIC );
+        win = new Win( parent, this.name(), WinType.BASIC );
         win.title_set( name() );
         win.autodel_set( true );
         win.resize( 320, 320 );
@@ -129,10 +129,6 @@ public abstract class Setting.Abstract : GLib.Object
 
     public abstract void run( Evas.Object? obj, void* event_info );
 
-    public void show() {
-        debug("stub function show module");
-    }
-
     public void close()
     {
         win = null; // will call evas_object_del, hence close the window
@@ -143,7 +139,7 @@ public abstract class Setting.Abstract : GLib.Object
 		if (exit_on_close) {Elm.exit();}
     }
 
-    public abstract string name();
-    public abstract string icon();
+    public abstract string? name();
+    public abstract string? icon();
 
 }

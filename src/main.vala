@@ -35,7 +35,8 @@ public class Category {
 		//debug("Register module %s", mod_type.name() );
 		_mod_type = mod_type;
 		mod = GLib.Object.new (_mod_type, null);
-		mod->init();
+        // initialize module with no parent object
+		mod->init( null );
 	}
 
 	private void free_mod_instance() {
@@ -54,7 +55,7 @@ public class Category {
 		mod->sig_on_close += free_mod_instance;
 
 		//finally actually run and show the module
-		mod->init();
+		mod->init( null );
 		mod->run( obj, event_info );
 	}
 }

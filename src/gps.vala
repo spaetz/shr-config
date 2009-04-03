@@ -50,12 +50,12 @@ public class Setting.GPS : Setting.Abstract
         this.win.show();
     }
 
-    public override string name()
+    public override string? name()
     {
         return "blah";
     }
 
-    public override string icon()
+    public override string? icon()
     {
         return "/usr/share/vala-settings/icons/icon_gps.png";
     }

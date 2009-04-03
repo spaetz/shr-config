@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2009 Michael 'Mickey' Lauer <mlauer@vanille-media.de>
+ * Copyright (C) 2009 Sebastian Spaeth <Sebastian@SSpaeth.de>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -16,7 +16,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  *
  */
-
+namespace Setting{
 
  //TODO: battery status? Or in a different module? 
    //cat  /sys/class/power_supply/usb/device/usb_curlim
@@ -26,7 +26,7 @@
  * Setting.Power is a vala-settings plugin that display blanking timeout
  * and other power related settings
  */
-public class Setting.Power : Setting.Abstract
+public class Power : Setting.Abstract
 {
     private DBus.Connection dbus;
     private dynamic DBus.Object dbus_disp; //Display
@@ -52,6 +52,9 @@ public class Setting.Power : Setting.Abstract
     private Elm.Table tout_table;
     private ValueSlider[] tout_sli;
     private Elm.Check adv_tout;
+
+    //advanced timeout elements
+    private AdvancedTimeouts advtout_inwin;
 
     /* Constructor of the class */
     construct {
@@ -156,7 +159,20 @@ public class Setting.Power : Setting.Abstract
             debug ("Failed DBus connection, not setting brightness");}
 
     }
-    
+
+
+	// callback, when the advanced timeout checkbox is clicked
+    private void cb_advanced_timeouts( Evas.Object? obj, void* event_info ) {
+		debug("enter adv settings");
+		var check = (Elm.Check*) obj;
+		// reset checkbox to empty
+		check->state_set( false );
+
+		advtout_inwin = new AdvancedTimeouts();
+		advtout_inwin.init( win );
+		advtout_inwin.run( null, null);
+	}
+
 
     public override void run( Evas.Object? obj, void* event_info )
     {
@@ -328,6 +344,7 @@ public class Setting.Power : Setting.Abstract
         tout_table.size_hint_weight_set( 1.0, 0.0 );
         adv_tout.label_set( "Show advanced timeouts." );
         adv_tout.show();
+		adv_tout.smart_callback_add( "changed", cb_advanced_timeouts);
         tout_table.pack( adv_tout, 0, row++, 3, 1);
 
         // End of timeout table
@@ -337,14 +354,123 @@ public class Setting.Power : Setting.Abstract
         this.win.show();
     }
 
-    public override string name()
+    public override string? name()
     {
         return "Power";
     }
 
-    public override string icon()
+    public override string? icon()
     {
         return "/usr/share/vala-settings/icons/icon_power.png";
     }
+
+}
+
+
+
+//------------------------------------------------------------------------
+public class AdvancedTimeouts: Setting.Abstract {
+//------------------------------------------------------------------------
+    private Elm.Frame tout_frame;
+    private string[] tout_strs = {"busy", "idle", "idle_dim", "idle_prelock", "lock", "suspend", "awake"};
+    private Elm.Table tout_table;
+    private ValueSlider[] tout_sli;
+
+    private DBus.Connection dbus;
+    private dynamic DBus.Object dbus_idle; //IdleNotifier
+
+
+	// constructor
+    construct {
+		this.dbus = DBus.Bus.get (DBus.BusType.SYSTEM);
+		this.dbus_idle = dbus.get_object ( "org.freesmartphone.odeviced",
+				   				   "/org/freesmartphone/Device/IdleNotifier/0",
+				   				   "org.freesmartphone.Device.IdleNotifier" );
+	}
+
+
+
+	// callback when a tout slider was chaned
+    public void cb_change_tout_value(  Evas.Object obj, void* event_info) {
+        Elm.Slider* p_sli = obj;
+        int newval = (int) p_sli->value_get();
+        debug("Change timeout for %s to %d", p_sli->name_get(), newval );
+        try {
+            dbus_idle.SetTimeout( p_sli->name_get(), newval );
+        } catch ( DBus.Error ex ) {
+            // failed, not showing the brightness box
+            debug ("Failed to set brightness via DBus");
+        } catch ( GLib.Error ex) {
+            // other failure. no dbus conection?
+            debug ("Failed DBus connection, not setting brightness");}
+
+    }
+
+
+    public override void run( Evas.Object? obj, void* event_info ) {
+        // The timout table
+        tout_frame = new Elm.Frame( box );
+        tout_frame.size_hint_align_set( -1.0, -1.0 );
+        tout_frame.size_hint_weight_set( 1.0, 1.0 );
+        //tout_frame.style_set( "outdent_top" ); 
+        tout_frame.label_set( "Timeout settings" );
+        tout_frame.show();
+        box.pack_start( tout_frame );
+
+        tout_table = new Elm.Table( box );
+        tout_table.size_hint_align_set( -1.0, -1.0 );
+        tout_table.size_hint_weight_set( 1.0, 0.0 );
+
+        // Get the timeout Hashtable
+        GLib.HashTable<string,int>? timeouts;
+        // busy, idle, idle_dim, idle_prelock, lock, suspend, awake
+
+        int row = 0;
+        try {
+            tout_table.show();
+            tout_frame.content_set( tout_table );
+            timeouts = this.dbus_idle.GetTimeouts();
+
+            uint num_touts = timeouts.size( );
+            // create an array of sufficient size
+            tout_sli = new ValueSlider [ num_touts ];
+
+            foreach (string tout_str in tout_strs) {
+                int tout = timeouts.lookup( tout_str );
+                //debug("%s %d of %d entries", str, tout_str, (int)num_touts );
+
+                // add a new ValueSlider for the timeout
+                tout_sli[row] = new ValueSlider ( tout_table );
+                tout_sli[row].label.label_set( tout_str.replace("_"," ") );
+                tout_sli[row].slider.min_max_set( -1, 60 );
+                tout_sli[row].slider.name_set( tout_str );
+                tout_sli[row].value_set( tout );
+                tout_sli[row].slider.smart_callback_add( "delay,changed", cb_change_tout_value);
+                tout_table.pack( tout_sli[row].label, 0, row, 1, 1);
+                tout_table.pack( tout_sli[row].slider, 1, row, 1, 1);
+                tout_table.pack( tout_sli[row].vlabel, 2, row, 1, 1);
+                tout_sli[row].show();
+
+                row += 1;
+            } //end foreach
+
+        } catch ( DBus.Error ex ) {
+            // failed, not showing the timeouts
+            debug ("Failed to get timeouts via DBus, disabling");
+        } catch ( GLib.Error ex) {
+            // other failure. no dbus conection?
+            debug ("Failed DBus connection, disabling timeouts");}
+
+        // End of timeout table
+
+ 
+        // Finally show the module window
+        this.win.show();
+        this.box.show();
+	}
+
+    public override string? name() { return "Advanced Timeouts"; }
+    public override string? icon() { return null; }
+}
 
 }

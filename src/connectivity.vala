@@ -276,12 +276,12 @@ public class Setting.Connectivity : Setting.Abstract
         this.win.show();
     }
 
-    public override string name()
+    public override string? name()
     {
         return "Connectivity";
     }
 
-    public override string icon()
+    public override string? icon()
     {
         return "/usr/share/vala-settings/icons/icon_connectivity.png";
     }
