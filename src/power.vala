@@ -372,7 +372,7 @@ public class Power : Setting.Abstract
 public class AdvancedTimeouts: Setting.Abstract {
 //------------------------------------------------------------------------
     private Elm.Frame tout_frame;
-    private string[] tout_strs = {"busy", "idle", "idle_dim", "idle_prelock", "lock", "suspend", "awake"};
+    private string[] tout_strs = {"idle", "idle_dim", "idle_prelock", "lock", "suspend"};
     private Elm.Table tout_table;
     private ValueSlider[] tout_sli;
 
