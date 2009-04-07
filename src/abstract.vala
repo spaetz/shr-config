@@ -90,9 +90,12 @@ public abstract class Setting.Abstract : GLib.Object
 		get; set; default = false;
 	}
 
+	// set to true for verbose output
+    public static bool verbose_output = false;
+
     public void init( Elm.Object? parent )
     {
-        //debug( "init module %s", name() );
+        if (verbose_output) debug( "init module %s", name() );
         win = new Win( parent, this.name(), WinType.BASIC );
         win.title_set( name() );
         win.autodel_set( true );

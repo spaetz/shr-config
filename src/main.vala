@@ -21,6 +21,11 @@
 using Evas;
 using Elm;
 
+//static weak string[] get_system_config_dirs, get_user_config_dir
+//Scanner
+//	namespace Process {
+//		public static bool spawn_async_with_pipes (string? working_directory, [CCode (array_length = false, array_null_terminated = true)] string[] argv, [CCode (array_length = false, array_null_terminated = true)] string[]? envp, SpawnFlags _flags, SpawnChildSetupFunc? child_setup, out Pid child_pid, out int standard_input = null, out int standard_output = null, out int standard_error = null) throws SpawnError;
+
 
 /* A Category contains necessary information about a module window
  * and inits/runs it.
@@ -32,7 +37,6 @@ public class Category {
 	private Type _mod_type;
 
 	public Category(Type mod_type) {
-		//debug("Register module %s", mod_type.name() );
 		_mod_type = mod_type;
 		mod = GLib.Object.new (_mod_type, null);
         // initialize module with no parent object
@@ -40,7 +44,6 @@ public class Category {
 	}
 
 	private void free_mod_instance() {
-		debug("Freeing module %s", _mod_type.name() );
 		mod = null;
 	}
 
@@ -50,7 +53,6 @@ public class Category {
 			mod = GLib.Object.new (_mod_type, null);
 		} else { debug("Just Run%s", _mod_type.name() ); }
 
-		debug("created new instance");
 		// connect close signal, so we free the odule after closing
 		mod->sig_on_close += free_mod_instance;
 
@@ -70,12 +72,14 @@ public class MainApp {
 	// set default vals like this: static int opt_optionname = 2;
 	static string? opt_module  = null;
 	static bool opt_verbose   = false;
+	static bool opt_restore   = false;
 	static bool opt_list_mods = false;
 
 	const OptionEntry[] opt_entries = {
 		{ "show-module", 'm', 0, OptionArg.STRING, out opt_module, "Directly show <modname> module screen", "<module>" },
 		{ "list-modules", 'l', 0, OptionArg.NONE, out opt_list_mods, "Beep when done", null },
 		{ "verbose", 'v', 0, OptionArg.NONE, out opt_verbose, "Be verbose", null },
+		{ "restore", 'r', 0, OptionArg.NONE, out opt_restore, "Restore saved settings and exit (not functional yet)", null },
 		{ null }
 	};
 
@@ -175,6 +179,12 @@ public class MainApp {
         if (retval != 0) {return retval;}
 
         // Do whatever command line options tell us to do:
+
+		if ( opt_verbose ) {
+			// Use verbose output
+			Setting.Abstract.verbose_output = true;
+		}
+
 		if ( opt_list_mods ) {
 			// List all available modules and exit
 			stdout.printf("All available modules:\n");
@@ -198,6 +208,9 @@ public class MainApp {
                 retval = 2;
 			};
 
+		} else if ( opt_restore ) {
+			//restore saved settings and exit
+			warning("TODO, implement restoring of saved settings here");
 		} else {
 			// show the main window (usually this should happen)
 			retval = show_main_menu();

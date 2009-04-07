@@ -100,7 +100,7 @@ public class Power : Setting.Abstract
        Elm.Toggle* p_tog = obj;
        bool state = p_tog->state_get ( );
        string res = p_tog->name_get ( );
-       debug("State is now %d %s\n", (int) state, res );
+       if (verbose_output) debug("State is now %d %s\n", (int) state, res );
 
 	   try {
 		   
@@ -117,11 +117,11 @@ public class Power : Setting.Abstract
 		   }
 	   } catch ( DBus.Error ex ) {
 		   // failed
-		   debug ("Failed to set policy via DBus");
+		   warning ("Failed to set policy via DBus");
 		   p_tog->state_set ( !state );
 	   } catch ( GLib.Error ex) {
 		   // other failure. no dbus conection?
-		   debug ("Failed DBus connection");
+		   warning ("Failed DBus connection");
 		   p_tog->state_set ( !state );
 	   }
     }
@@ -134,13 +134,13 @@ public class Power : Setting.Abstract
 
 	   try {
 		   dbus_disp.SetBrightness ( newval );
-		   debug("Set new brightness value %d", newval);
+		   if (verbose_output) debug("Set new brightness value %d", newval);
 	   } catch ( DBus.Error ex ) {
 		   // failed
-		   debug ("Failed to set brightness via DBus");
+		   warning ("Failed to set brightness via DBus");
 	   } catch ( GLib.Error ex) {
 		   // other failure. no dbus conection?
-		   debug ("Failed DBus connection");
+		   warning ("Failed DBus connection");
 	   }
     }
 
@@ -153,17 +153,16 @@ public class Power : Setting.Abstract
             dbus_idle.SetTimeout( p_sli->name_get(), newval );
         } catch ( DBus.Error ex ) {
             // failed, not showing the brightness box
-            debug ("Failed to set brightness via DBus");
+            warning ("Failed to set brightness via DBus");
         } catch ( GLib.Error ex) {
             // other failure. no dbus conection?
-            debug ("Failed DBus connection, not setting brightness");}
+            warning ("Failed DBus connection, not setting brightness");}
 
     }
 
 
 	// callback, when the advanced timeout checkbox is clicked
     private void cb_advanced_timeouts( Evas.Object? obj, void* event_info ) {
-		debug("enter adv settings");
 		var check = (Elm.Check*) obj;
 		// reset checkbox to empty
 		check->state_set( false );
@@ -195,10 +194,10 @@ public class Power : Setting.Abstract
             bright_box.show();
         } catch ( DBus.Error ex ) {
             // failed, not showing the brightness box
-            debug ("Failed to get brightness via DBus, disabling");
+            warning ("Failed to get brightness via DBus, disabling");
         } catch ( GLib.Error ex) {
             // other failure. no dbus conection?
-            debug ("Failed DBus connection, disabling brightness");}
+            warning ("Failed DBus connection, disabling brightness");}
         bright_box.horizontal_set( true );
 
 
@@ -248,10 +247,10 @@ public class Power : Setting.Abstract
             dimPol_tog.show();
         } catch ( DBus.Error ex ) {
             // failed, not showing the brightness box
-            debug ("Failed to get dim Policy via DBus, disabling");
+            warning ("Failed to get dim Policy via DBus, disabling");
         } catch ( GLib.Error ex) {
             // other failure. no dbus conection?
-            debug ("Failed DBus connection, disabling dim policy");}
+            warning ("Failed DBus connection, disabling dim policy");}
         dimPol_tog.state_set( dimPol != "enabled" );
         dimPol_tog.smart_callback_add( "changed", cb_dimsuspPol_tog_changed );
         dimPol_table.pack ( dimPol_tog, 1, 0, 1, 1 );
@@ -275,10 +274,10 @@ public class Power : Setting.Abstract
                 suspPol_tog.show();
         } catch ( DBus.Error ex ) {
             // failed, not showing the suspend toggle
-            debug ("Failed to get suspend Policy via DBus, disabling");
+            warning ("Failed to get suspend Policy via DBus, disabling");
         } catch ( GLib.Error ex) {
             // other failure. no dbus conection?
-            debug ("Failed DBus connection, disabling suspend policy");}
+            warning ("Failed DBus connection, disabling suspend policy");}
         suspPol_tog.state_set( suspPol != "enabled" );
         suspPol_tog.smart_callback_add( "changed", cb_dimsuspPol_tog_changed);
         suspPol_tog.size_hint_weight_set( 1.0, 1.0 );
@@ -334,10 +333,10 @@ public class Power : Setting.Abstract
 
         } catch ( DBus.Error ex ) {
             // failed, not showing the timeouts
-            debug ("Failed to get timeouts via DBus, disabling");
+            warning ("Failed to get timeouts via DBus, disabling");
         } catch ( GLib.Error ex) {
             // other failure. no dbus conection?
-            debug ("Failed DBus connection, disabling timeouts");}
+            warning ("Failed DBus connection, disabling timeouts");}
 
         adv_tout = new Elm.Check( tout_table );
         tout_table.size_hint_align_set( -1.0, -1.0 );
