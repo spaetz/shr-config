@@ -283,6 +283,6 @@ public class Setting.Connectivity : Setting.Abstract
 
     public override string? icon()
     {
-        return "/usr/share/vala-settings/icons/icon_connectivity.png";
+        return "/usr/share/shr-config/icons/icon_connectivity.png";
     }
 }

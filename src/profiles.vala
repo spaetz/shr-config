@@ -276,6 +276,6 @@ public class Setting.Profiles : Setting.Abstract
 
     public override string? icon()
     {
-        return "/usr/share/vala-settings/icons/icon_profiles.png";
+        return "/usr/share/shr-config/icons/icon_profiles.png";
     }
 }

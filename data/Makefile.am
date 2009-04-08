@@ -1,6 +1,6 @@
 include $(top_srcdir)/Makefile.decl
 
-filesdir = $(datadir)/vala-settings/icons
+filesdir = $(datadir)/shr-config/icons
 
 files_DATA = \
 icon_connectivity.png \
@@ -16,7 +16,7 @@ icon_phone.png \
 $(NULL)
 
 desktopdir   = $(datadir)/applications
-desktop_DATA = vala-settings.desktop
+desktop_DATA = shr-config.desktop
 
 EXTRA_DIST += $(files_DATA)
 

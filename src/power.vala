@@ -23,7 +23,7 @@ namespace Setting{
    //cat /sys/class/power_supply/battery/uevent
 
 /*
- * Setting.Power is a vala-settings plugin that display blanking timeout
+ * Setting.Power is a shr-config plugin that display blanking timeout
  * and other power related settings
  */
 public class Power : Setting.Abstract
@@ -360,7 +360,7 @@ public class Power : Setting.Abstract
 
     public override string? icon()
     {
-        return "/usr/share/vala-settings/icons/icon_power.png";
+        return "/usr/share/shr-config/icons/icon_power.png";
     }
 
 }

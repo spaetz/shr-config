@@ -38,7 +38,7 @@ public class Setting.GPS : Setting.Abstract
     public override void run( Evas.Object? obj, void* event_info )
     {
         bg = new Elm.Bg( this.box );
-        bg.file_set( "/usr/share/vala-settings/icons/icon_gps.png" );
+        bg.file_set( "/usr/share/shr-config/icons/icon_gps.png" );
         bg.size_hint_weight_set( 1.0, 1.0 );
         bg.size_hint_min_set( 160, 160 );
         bg.size_hint_max_set( 640, 640 );
@@ -57,6 +57,6 @@ public class Setting.GPS : Setting.Abstract
 
     public override string? icon()
     {
-        return "/usr/share/vala-settings/icons/icon_gps.png";
+        return "/usr/share/shr-config/icons/icon_gps.png";
     }
 }
