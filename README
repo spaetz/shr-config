@@ -1,1 +1,5 @@
-README
+shr-config is a central settings app that controls various aspects of SHR/FSO-based distributions. It is written by Sebastian Spaeth and licensed under the GPL V2+.
+
+compilation will currently fail with current vala due to:
+http://bugzilla.gnome.org/show_bug.cgi?id=579803
+(patch included in the bug)
