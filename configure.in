@@ -23,6 +23,7 @@ GLIB_REQUIRED=2.18.0
 EVAS_REQUIRED=0.0.0
 EINA_REQUIRED=0.0.0
 EFLVALA_REQUIRED=0.0.0.0
+CAIRO_REQUIRED=0.0.0.0
 
 PKG_CHECK_MODULES(DEPS,
   elementary >= $ELM_REQUIRED
@@ -31,7 +32,8 @@ PKG_CHECK_MODULES(DEPS,
   glib-2.0 >= $GLIB_REQUIRED
   gobject-2.0 >= $GLIB_REQUIRED
   evas >= $EVAS_REQUIRED
-  eina-0 >= $EINA_REQUIRED)
+  eina-0 >= $EINA_REQUIRED
+  cairo >= $CAIRO_REQUIRED)
 
 #set an explicit vapidir on compilation
 AC_ARG_ENABLE([vapidir],

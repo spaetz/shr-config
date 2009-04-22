@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2009 Michael 'Mickey' Lauer <mlauer@vanille-media.de>
+ * Copyright (C) 2009 Sebastian Spaeth <Sebastian@SSpaeth.de>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,41 +18,180 @@
  */
 
 using Elm;
+using Cairo;
+
+public class Barchart : GLib.Object {
+	private const int SIZE = 10;
+	private Cairo.ImageSurface surface;
+
+    construct {
+        this.create_widgets ();
+    }
+
+    private void create_widgets () {
+		surface = new Cairo.ImageSurface (Cairo.Format.ARGB32, 200, 200);
+        var ctx = new Cairo.Context( surface );
+        ctx.set_source_rgb (0, 0, 0);
+        ctx.set_line_width (SIZE / 4);
+        ctx.set_tolerance (0.1);
+
+        ctx.set_line_join (LineJoin.ROUND);
+        ctx.set_dash (new double[] {SIZE / 4.0, SIZE / 4.0}, 0);
+        stroke_shapes (ctx, 0, 0);
+
+        ctx.set_dash (null, 0);
+        stroke_shapes (ctx, 0, 3 * SIZE);
+
+        ctx.set_line_join (LineJoin.BEVEL);
+        stroke_shapes (ctx, 0, 6 * SIZE);
+
+        ctx.set_line_join (LineJoin.MITER);
+        stroke_shapes(ctx, 0, 9 * SIZE);
+
+        fill_shapes (ctx, 0, 12 * SIZE);
+
+        ctx.set_line_join (LineJoin.BEVEL);
+        fill_shapes (ctx, 0, 15 * SIZE);
+        ctx.set_source_rgb (1, 0, 0);
+        stroke_shapes (ctx, 0, 15 * SIZE);
+    }
+
+    private void stroke_shapes (Context ctx, int x, int y) {
+        this.draw_shapes (ctx, x, y, ctx.stroke);
+    }
+
+    private void fill_shapes (Context ctx, int x, int y) {
+        this.draw_shapes (ctx, x, y, ctx.fill);
+    }
+
+    private delegate void DrawMethod ();
+
+    private void draw_shapes (Context ctx, int x, int y, DrawMethod draw_method) {
+        ctx.save ();
+
+        ctx.new_path ();
+        ctx.translate (x + SIZE, y + SIZE);
+        bowtie (ctx);
+        draw_method ();
+
+        ctx.new_path ();
+        ctx.translate (3 * SIZE, 0);
+        square (ctx);
+        draw_method ();
+
+        ctx.new_path ();
+        ctx.translate (3 * SIZE, 0);
+        triangle (ctx);
+        draw_method ();
+
+        ctx.new_path ();
+        ctx.translate (3 * SIZE, 0);
+        inf (ctx);
+        draw_method ();
+
+        ctx.restore();
+    }
+
+    private void triangle (Context ctx) {
+        ctx.move_to (SIZE, 0);
+        ctx.rel_line_to (SIZE, 2 * SIZE);
+        ctx.rel_line_to (-2 * SIZE, 0);
+        ctx.close_path ();
+    }
+
+    private void square (Context ctx) {
+        ctx.move_to (0, 0);
+        ctx.rel_line_to (2 * SIZE, 0);
+        ctx.rel_line_to (0, 2 * SIZE);
+        ctx.rel_line_to (-2 * SIZE, 0);
+        ctx.close_path ();
+    }
+
+    private void bowtie (Context ctx) {
+        ctx.move_to (0, 0);
+        ctx.rel_line_to (2 * SIZE, 2 * SIZE);
+        ctx.rel_line_to (-2 * SIZE, 0);
+        ctx.rel_line_to (2 * SIZE, -2 * SIZE);
+        ctx.close_path ();
+    }
+
+    private void inf (Context ctx) {
+        ctx.move_to (0, SIZE);
+        ctx.rel_curve_to (0, SIZE, SIZE, SIZE, 2 * SIZE, 0);
+        ctx.rel_curve_to (SIZE, -SIZE, 2 * SIZE, -SIZE, 2 * SIZE, 0);
+        ctx.rel_curve_to (0, SIZE, -SIZE, SIZE, -2 * SIZE, 0);
+        ctx.rel_curve_to (-SIZE, -SIZE, -2 * SIZE, -SIZE, -2 * SIZE, 0);
+        ctx.close_path ();
+    }
+
+	public uchar[] data() {
+        return surface.get_data();
+	}
+}
 
 public class Setting.GPS : Setting.Abstract
 {
-    DBus.Connection dbus;
-    dynamic DBus.Object dbus_disp; //Display
+    //DBus.Connection dbus;
+    //dynamic DBus.Object dbus_disp; //Display
 
-    Elm.Bg bg;
+    Elm.Toggle pol_tog;
 
+    //GPS info box widgets
+    Elm.Frame gpsinfo_f;
+
+	Evas.Image barchart;
+	Barchart bchart_data;
     /* Constructor of the class */
-    public GPS()
-    {
-       this.dbus = DBus.Bus.get (DBus.BusType.SYSTEM);
-       this.dbus_disp = dbus.get_object ("org.freesmartphone.odeviced",
-                                 "/org/freesmartphone/Device/Display/0",
-                                 "org.freesmartphone.Device.Display");
-    }
+    //public GPS()
+    //{
+    //   this.dbus = DBus.Bus.get (DBus.BusType.SYSTEM);
+    //   this.dbus_disp = dbus.get_object ("org.freesmartphone.odeviced",
+    //                             "/org/freesmartphone/Device/Display/0",
+    //                             "org.freesmartphone.Device.Display");
+    //}
+
+	public void cb_gpsPol_tog_changed( Evas.Object obj, void* event_info ) {
+		debug("gps Policy changed called");
+	}
 
     public override void run( Evas.Object? obj, void* event_info )
     {
-        bg = new Elm.Bg( this.box );
-        bg.file_set( "/usr/share/shr-config/icons/icon_gps.png" );
-        bg.size_hint_weight_set( 1.0, 1.0 );
-        bg.size_hint_min_set( 160, 160 );
-        bg.size_hint_max_set( 640, 640 );
-        bg.show();
 
-        this.box.pack_end( bg );
+		// GPS Radio Policy toggle
+        pol_tog = new Elm.Toggle( this.box );
+        pol_tog.scale_set(1.4);
+        pol_tog.label_set("GPS reception");
+        pol_tog.smart_callback_add( "changed", cb_gpsPol_tog_changed);
+        pol_tog.size_hint_weight_set( 1.0, 0.0 );
+        pol_tog.show();
+        this.box.pack_start( pol_tog );
 
-        stdout.printf("background");
+        gpsinfo_f = new Elm.Frame( this.box );
+        gpsinfo_f.size_hint_weight_set( 1.0, 1.0 );
+        gpsinfo_f.size_hint_align_set( -1.0, -1.0 );
+        gpsinfo_f.label_set("GPS info");
+        gpsinfo_f.show();
+        this.box.pack_end( gpsinfo_f );
+
+		bchart_data = new Barchart();
+		barchart = new Evas.Image ( gpsinfo_f.evas_get() );
+        barchart.filled_set ( true );
+        barchart.alpha_set ( true );
+        barchart.size_set( 200, 200 );
+        barchart.data_copy_set( bchart_data.data() );
+        int h, w;
+        barchart.size_get( out h, out w );
+        debug("size2 %d,%d",h,w);
+        //barchart.file_set("/home/spaetz/src/shr-config/data/icon_gps.png", "key"); //"/usr/share/icons/xine.xpm", "key");// 
+        barchart.show();
+        gpsinfo_f.content_set( (Elm.Object) barchart );
+
         this.win.show();
     }
 
     public override string? name()
     {
-        return "blah";
+        return "GPS";
     }
 
     public override string? icon()

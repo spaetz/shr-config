@@ -32,6 +32,7 @@ settings_SOURCES = \
 	            --pkg evas \
 	            --pkg eina \
 	            --pkg ecore \
+	            --pkg cairo \
 	            --save-temps \
                     --basedir $(top_srcdir) \
 	            $^
