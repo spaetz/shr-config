@@ -22,19 +22,21 @@ using Evas;
 using Elm;
 
 
-/* A Category contains necessary information about a module window
- * and inits/runs it.
- */
+/*********************************************************************
+* Category() contains necessary information about a module window
+* and inits/runs it.
+*********************************************************************/
 //------------------------------------------------------------------------
 public class Category {
 //------------------------------------------------------------------------
+	//FIXME: Document these variables
 	public Setting.Abstract* mod;
 	private Type _mod_type;
 
 	public Category(Type mod_type) {
 		_mod_type = mod_type;
 		mod = GLib.Object.new (_mod_type, null);
-        // initialize module with no parent object
+		// initialize module with no parent object
 		mod->init( null );
 	}
 
@@ -58,17 +60,20 @@ public class Category {
 }
 
 
-/* MainApp is the main class that contains the whole application. 
- * MAIN is just executing this one. */
+/******************************************************************************
+* MainApp is the main class that contains the whole application. 
+* MAIN is just executing this one.
+*******************************************************************************/
 //------------------------------------------------------------------------
 public class MainApp {
 //------------------------------------------------------------------------
-    /* automatic property, data field is implicit
-       pointer to command line args */
-    //public static string[] args { get; construct set; }
-    public static string[] args;
+	/* automatic property, data field is implicit */
+	//public static string[] _args { get; construct set; }
+	/* pointer to command line args */
 
-    // command line option handling
+	public static string[] _args;
+
+	// command line option handling
 	// set default vals like this: static int opt_optionname = 2;
 	static string? opt_module  = null;
 	static bool opt_verbose   = false;
@@ -118,18 +123,18 @@ public class MainApp {
      */
 	private int parse_opts() {
 		OptionContext opt_context;
-        opt_context = new OptionContext (
+		opt_context = new OptionContext (
 			"- central SHR settings administration");
 		opt_context.add_main_entries (opt_entries, null);
 		//opt_context.add_group (context, gtk_get_option_group (TRUE));
 
         int retval = 0;
 
-		try { opt_context.parse ( ref this.args ); }
+		try { opt_context.parse ( ref this._args ); }
 		catch (GLib.OptionError e){
 			//UNKNOWN_OPTION, BAD_VALUE, FAILED (OptionArgFunc cb failed)
 			stdout.printf ("%s\n", e.message);
-			stdout.printf ("Run '%s --help' to see a full list of available command line options.\n\n", args[0]);
+			stdout.printf ("Run '%s --help' to see a full list of available command line options.\n\n", _args[0]);
 			retval = 1;
 		}
 		return retval;
@@ -137,16 +142,16 @@ public class MainApp {
 
 
 	/*********************************************************************
-	 * MainApp class constructor
-     *********************************************************************/
+	* MainApp class constructor
+	**********************************************************************/
 	public MainApp( string[] args ) {
-        // save pointer to args[]
-		this.args = args;
-        // Elm needs already to be inited when we register modules
+		// save pointer to args[]
+		this._args = args;
+		// Elm needs already to be inited when we register modules
 		Elm.init( args );
 
 		// define all possible modules here
-        categories = new GLib.SList<Category> ();
+		categories = new GLib.SList<Category> ();
 		categories.append (new Category( typeof( Setting.Connectivity )));
 		categories.append (new Category( typeof( Setting.Profiles )));
 		categories.append (new Category( typeof( Setting.Power  )));
@@ -155,28 +160,26 @@ public class MainApp {
 	}
 
 
-	/*
-	 * MainApp class destructor
-     */
+	/**********************************************************************
+	* MainApp class destructor
+	***********************************************************************/
 	~MainApp() {
 		Elm.shutdown();
 	}
 
 
-
-	/* This is run in order to actually start the MainApp. It returns the error
-	 * value that will be handed back to the OS.
-	 * returns: 0:OK, 1:option parsing error, 2:module name not found
-	 */
+	/*************************************************************************
+	* This is run in order to actually start the MainApp. It returns the error
+	* value that will be handed back to the OS.
+	* returns: 0:OK, 1:option parsing error, 2:module name not found
+	**************************************************************************/
 	public int run() {
-        int retval; //main app return value
-
+		int retval; //main app return value
 		//parse command line and return with error number if necessary
-        retval = parse_opts();
-        if (retval != 0) {return retval;}
+		retval = parse_opts();
+		if (retval != 0) {return retval;}
 
-        // Do whatever command line options tell us to do:
-
+		// Do whatever command line options tell us to do:
 		if ( opt_verbose ) {
 			// Use verbose output
 			Setting.Abstract.verbose_output = true;
@@ -190,10 +193,10 @@ public class MainApp {
 			}
 		} else if ( opt_module != null ) {
 			// start a specific module window
-            bool found = false;
+			bool found = false;
 			foreach (Category category in categories) {
 				if ( category.mod->name() == opt_module ) {
-                    found = true;
+					found = true;
 					// quit elm after closing this module
 					category.mod->exit_on_close = true;
 					category.run( null, "");
@@ -202,7 +205,7 @@ public class MainApp {
 			}
 			if (!found) {
 				stderr.printf("Could not find module %s\n", opt_module);
-                retval = 2;
+				retval = 2;
 			};
 
 		} else if ( opt_restore ) {
@@ -215,10 +218,15 @@ public class MainApp {
 
 		return retval;
 	}
- 
+
+
+	/*************************************************************************
+	* show_main_menu()
+	* Parameters: 
+	* Returns: always 0 for now
+	**************************************************************************/ 
 	private int show_main_menu( ) {
 		//Setting.Abstract mod = new GLib.Type.from_name("Setting.Power");
-
 		Win win = new Win( null, "settings", WinType.BASIC );
 		win.title_set( "SHR-settings" );
 		win.autodel_set( true );
@@ -266,13 +274,18 @@ public class MainApp {
 		Elm.run();
 		return 0;
 	}
-} //End of MainApp
+} // End of MainApp
 
 
-//------------------------ MAIN -------------------------------------
+/**************************************************************************************
+* MAIN
+***************************************************************************************/
 public int main( string[] args ) {
 	// Just init one MainApp and run() it
 	MainApp app = new MainApp( args );
-    return app.run();
+	return app.run();
 }
-//------------------------ END MAIN ---------------------------------
+/**************************************************************************************
+* END OF MAIN
+***************************************************************************************/
+
