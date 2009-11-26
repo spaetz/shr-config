@@ -138,11 +138,11 @@ public class Barchart : GLib.Object {
         ctx.rel_curve_to (-SIZE, -SIZE, -2 * SIZE, -SIZE, -2 * SIZE, 0);
         ctx.close_path ();
     }
-
-	public uchar[] data() {
-        return surface.get_data();
-	}
 */
+	public uchar[] data() {
+		return surface.get_data();
+	}
+
 }
 
 public class Setting.GPS : Setting.Abstract
@@ -189,26 +189,26 @@ public class Setting.GPS : Setting.Abstract
         gpsinfo_f.show();
         this.box.pack_end( gpsinfo_f );
 
-		barchart = new Evas.Image ( gpsinfo_f.evas_get() );
+	barchart = new Evas.Image ( gpsinfo_f.evas_get() );
         //barchart.filled_set ( true );
         barchart.size_set( 200, 200 );
         barchart.alpha_set ( true );
-		debug("1");
-        weak string data = barchart.data_get( true );
-		debug("2");
-		bchart = new Barchart();
-		bchart.create_img( data, 200, 200 );
-		debug("3");
-		barchart.data_set( data );
-        barchart.data_update_add ( 0, 0, 200, 200);
-		debug("4");
+	debug("1");
+        weak void* data = barchart.data_get( true );
+	debug("2");
+	bchart = new Barchart();
+	/*bchart.create_img( void*(data), 200, 200 );
+	debug("3");
+	barchart.data_set( data );
+	barchart.data_update_add ( 0, 0, 200, 200);
+	debug("4");
         int h, w;
         barchart.size_get( out h, out w );
         debug("size2 %d,%d",h,w);
         //barchart.file_set("/home/spaetz/src/shr-config/data/icon_gps.png", "key"); //"/usr/share/icons/xine.xpm", "key");// 
         barchart.show();
         gpsinfo_f.content_set( (Elm.Object) barchart );
-
+	*/
         this.win.show();
     }
 
