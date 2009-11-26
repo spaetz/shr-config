@@ -21,11 +21,6 @@
 using Evas;
 using Elm;
 
-//static weak string[] get_system_config_dirs, get_user_config_dir
-//Scanner
-//	namespace Process {
-//		public static bool spawn_async_with_pipes (string? working_directory, [CCode (array_length = false, array_null_terminated = true)] string[] argv, [CCode (array_length = false, array_null_terminated = true)] string[]? envp, SpawnFlags _flags, SpawnChildSetupFunc? child_setup, out Pid child_pid, out int standard_input = null, out int standard_output = null, out int standard_error = null) throws SpawnError;
-
 
 /* A Category contains necessary information about a module window
  * and inits/runs it.
@@ -68,6 +63,11 @@ public class Category {
 //------------------------------------------------------------------------
 public class MainApp {
 //------------------------------------------------------------------------
+    /* automatic property, data field is implicit
+       pointer to command line args */
+    //public static string[] args { get; construct set; }
+    public static string[] args;
+
     // command line option handling
 	// set default vals like this: static int opt_optionname = 2;
 	static string? opt_module  = null;
@@ -85,9 +85,6 @@ public class MainApp {
 
     // definition of all available modules is stored here
 	static GLib.SList<Category> categories;
-
-    // pointer to command line args
-    static string[args] args;
 
     // main menu widgets
 	Table table;
@@ -128,7 +125,7 @@ public class MainApp {
 
         int retval = 0;
 
-		try { opt_context.parse ( ref args ); }
+		try { opt_context.parse ( ref this.args ); }
 		catch (GLib.OptionError e){
 			//UNKNOWN_OPTION, BAD_VALUE, FAILED (OptionArgFunc cb failed)
 			stdout.printf ("%s\n", e.message);
@@ -139,10 +136,10 @@ public class MainApp {
 	}
 
 
-	/*
+	/*********************************************************************
 	 * MainApp class constructor
-     */
-	MainApp( string[args] args ) {
+     *********************************************************************/
+	public MainApp( string[] args ) {
         // save pointer to args[]
 		this.args = args;
         // Elm needs already to be inited when we register modules
@@ -271,8 +268,11 @@ public class MainApp {
 	}
 } //End of MainApp
 
+
 //------------------------ MAIN -------------------------------------
 public int main( string[] args ) {
+	// Just init one MainApp and run() it
 	MainApp app = new MainApp( args );
     return app.run();
 }
+//------------------------ END MAIN ---------------------------------

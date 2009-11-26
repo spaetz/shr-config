@@ -25,10 +25,25 @@ public class Barchart : GLib.Object {
 	private Cairo.ImageSurface surface;
 
     construct {
-        this.create_widgets ();
+		//
     }
 
-    private void create_widgets () {
+    public void create_img (uchar[] data, int width, int height) {
+		surface = new Cairo.ImageSurface.for_data (data, Cairo.Format.ARGB32, width, height, 0);
+        var ctx = new Cairo.Context( surface );
+        ctx.set_source_rgb (0, 0, 0);
+        ctx.set_line_width (2);
+        ctx.set_tolerance (0.1);
+        ctx.move_to (SIZE, 0);
+        ctx.rel_line_to (SIZE, 2 * SIZE);
+        ctx.rel_line_to (-2 * SIZE, 0);
+        ctx.close_path ();
+
+        surface.flush();
+		surface.finish(); // or rather use flush?
+
+	}
+/*    private void create_widgets () {
 		surface = new Cairo.ImageSurface (Cairo.Format.ARGB32, 200, 200);
         var ctx = new Cairo.Context( surface );
         ctx.set_source_rgb (0, 0, 0);
@@ -127,6 +142,7 @@ public class Barchart : GLib.Object {
 	public uchar[] data() {
         return surface.get_data();
 	}
+*/
 }
 
 public class Setting.GPS : Setting.Abstract
@@ -140,7 +156,7 @@ public class Setting.GPS : Setting.Abstract
     Elm.Frame gpsinfo_f;
 
 	Evas.Image barchart;
-	Barchart bchart_data;
+	Barchart bchart;
     /* Constructor of the class */
     //public GPS()
     //{
@@ -173,12 +189,19 @@ public class Setting.GPS : Setting.Abstract
         gpsinfo_f.show();
         this.box.pack_end( gpsinfo_f );
 
-		bchart_data = new Barchart();
 		barchart = new Evas.Image ( gpsinfo_f.evas_get() );
-        barchart.filled_set ( true );
-        barchart.alpha_set ( true );
+        //barchart.filled_set ( true );
         barchart.size_set( 200, 200 );
-        barchart.data_copy_set( bchart_data.data() );
+        barchart.alpha_set ( true );
+		debug("1");
+        weak string data = barchart.data_get( true );
+		debug("2");
+		bchart = new Barchart();
+		bchart.create_img( data, 200, 200 );
+		debug("3");
+		barchart.data_set( data );
+        barchart.data_update_add ( 0, 0, 200, 200);
+		debug("4");
         int h, w;
         barchart.size_get( out h, out w );
         debug("size2 %d,%d",h,w);
