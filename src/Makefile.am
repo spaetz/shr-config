@@ -1,8 +1,17 @@
-bin_PROGRAMS = settings
+include $(top_srcdir)/Makefile.decl
+
+NULL = 
+
+AUTOMAKE_OPTIONS = subdir-objects
+
+INCLUDES = \
+	$(DEPS_CFLAGS) \
+	-include $(CONFIG_HEADER) \
+	$(NULL)
 
 BUILT_SOURCES = .vala.stamp
 
-NULL = 
+bin_PROGRAMS = settings
 
 settings_VALASOURCES = \
 	abstract.vala \
@@ -13,30 +22,32 @@ settings_VALASOURCES = \
 	profiles.vala \
 	$(NULL)
 
-settings_LDADD = \
-	$(DEPS_LIBS) \
-	$(THREAD_LIBS) \
-	$(NULL)
-#	-lutil
-
 settings_SOURCES = \
 	$(settings_VALASOURCES:.vala=.c) \
-	$(settings_VALASOURCES:.vala=.h) \
+	\
 	$(NULL)
 
-
 .vala.stamp: $(settings_VALASOURCES)
-	$(VALAC) -c @VAPI_DIR@ \
+	$(VALAC) -C \
 	            --pkg dbus-glib-1 \
-	            --pkg elm \
 	            --pkg evas \
-	            --pkg eina \
 	            --pkg ecore \
+	            --pkg elm \
 	            --pkg cairo \
 	            --save-temps \
-                    --basedir $(top_srcdir) \
-	            $^
+	            --basedir $(top_srcdir) $^
 	touch $@
+
+settings_LDADD = \
+	$(DEPS_LIBS) \
+	-lutil \
+	$(NULL)
+#TODO why is libutil needed?
+
+EXTRA_DIST += \
+	$(settings_VALASOURCES) \
+	.vala.stamp \
+	$(NULL)
 
 CLEANFILES = \
 	*.c \
@@ -44,4 +55,9 @@ CLEANFILES = \
 	.vala.stamp \
 	$(NULL)
 
-MAINTAINERCLEANFILES = Makefile.in
+DISTCLEANFILES = \
+	$(NULL)
+
+MAINTAINERCLEANFILES = \
+	Makefile.in \
+	$(NULL)
